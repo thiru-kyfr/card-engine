@@ -1,0 +1,111 @@
+# Apex Infinite — Example Bank
+# DUMMY DATA. Illustrative structure for engine development only.
+
+card_id: apex-infinite
+name: Apex Infinite
+issuer: Example Bank
+network:
+  name: amex
+tier: super_premium
+status: active
+gates:
+  min_age: 21
+  max_age: 70
+  allowed_employment:
+  - salaried
+  - self_employed
+  min_income:
+    salaried: 3600000
+    self_employed: 4800000
+base:
+  points_per_unit: 3
+  unit_inr: 100
+  currency: points
+fee:
+  annual: 50000
+  joining: 25000
+  waiver_threshold: 2000000
+  gst_pct: 18
+forex_markup_pct: 1.5
+welcome:
+  points: 40000
+  condition: Spend ₹3,00,000 in the first 90 days
+accelerators:
+- id: ai-travel
+  scope:
+    type: category
+    value: travel_air
+  multiplier: 5
+  basis: total
+  cap:
+    type: none
+    window: statement_cycle
+  post_cap: 1
+  priority: 3
+- id: ai-hotel
+  scope:
+    type: category
+    value: travel_hotel
+  multiplier: 5
+  basis: total
+  cap:
+    type: none
+    window: statement_cycle
+  post_cap: 1
+  priority: 3
+- id: ai-dining
+  scope:
+    type: category
+    value: dining
+  multiplier: 3
+  basis: total
+  cap:
+    type: none
+    window: statement_cycle
+  post_cap: 1
+  priority: 3
+redemption:
+- channel: cashback
+  inr_per_point: 0.4
+  min_points: 1000
+  fee: 0
+  is_default: false
+- channel: portal
+  inr_per_point: 0.75
+  min_points: 1000
+  fee: 0
+  is_default: false
+- channel: airmiles
+  inr_per_point: 1.2
+  min_points: 1000
+  fee: 0
+  is_default: true
+  transfer_ratio: '1:1'
+milestones:
+- id: ai-ms1
+  threshold: 1500000
+  reward_type: voucher
+  value_inr: 25000
+  window: annual
+  cumulative: true
+  notes: ₹25,000 voucher at ₹15L annual spend
+exclusions:
+- category: rent
+  treatment: zero_earn
+- category: fuel
+  treatment: zero_earn
+- category: wallet_load
+  treatment: zero_earn
+- category: government
+  treatment: zero_earn
+- category: insurance
+  treatment: base_only
+- category: jewellery
+  treatment: base_only
+meta:
+  terms_url: https://example.com/cards/apex-infinite
+  effective_date: '2026-04-01'
+  last_verified: '2026-08-20'
+  owner: ops@company.com
+  confidence: high
+notes: Super-premium, uncapped accelerators. Only wins at very high spend — a useful ceiling test.

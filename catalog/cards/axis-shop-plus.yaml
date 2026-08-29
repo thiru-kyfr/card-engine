@@ -1,0 +1,108 @@
+# Shop Plus — Example Bank
+# DUMMY DATA. Illustrative structure for engine development only.
+
+card_id: axis-shop-plus
+name: Shop Plus
+issuer: Example Bank
+network:
+  name: visa
+  tier: signature
+tier: mid
+status: active
+gates:
+  min_age: 21
+  max_age: 65
+  allowed_employment:
+  - salaried
+  - self_employed
+  min_income:
+    salaried: 500000
+    self_employed: 700000
+base:
+  points_per_unit: 2
+  unit_inr: 100
+  currency: points
+fee:
+  annual: 1500
+  joining: 500
+  waiver_threshold: 250000
+  gst_pct: 18
+forex_markup_pct: 3.5
+welcome:
+  points: 3000
+  condition: Spend ₹30,000 in the first 60 days
+accelerators:
+- id: sp-online
+  scope:
+    type: category
+    value: online_shopping
+  multiplier: 10
+  basis: total
+  cap:
+    type: points
+    value: 4000
+    window: statement_cycle
+  post_cap: 0
+  priority: 3
+  notes: post_cap 0 — stops earning entirely past the cap. The trap this field exists to catch.
+- id: sp-apparel
+  scope:
+    type: category
+    value: apparel
+  multiplier: 5
+  basis: total
+  cap:
+    type: spend
+    value: 10000
+    window: statement_cycle
+  post_cap: 1
+  priority: 3
+- id: sp-electronics
+  scope:
+    type: category
+    value: electronics
+  multiplier: 5
+  basis: total
+  cap:
+    type: spend
+    value: 10000
+    window: statement_cycle
+  post_cap: 1
+  priority: 3
+redemption:
+- channel: cashback
+  inr_per_point: 0.25
+  min_points: 1000
+  fee: 0
+  is_default: false
+- channel: voucher
+  inr_per_point: 0.4
+  min_points: 1000
+  fee: 0
+  is_default: true
+- channel: merchandise
+  inr_per_point: 0.3
+  min_points: 2000
+  fee: 0
+  is_default: false
+milestones: []
+exclusions:
+- category: rent
+  treatment: zero_earn
+- category: fuel
+  treatment: zero_earn
+- category: wallet_load
+  treatment: zero_earn
+- category: government
+  treatment: zero_earn
+- category: insurance
+  treatment: base_only
+- category: jewellery
+  treatment: base_only
+meta:
+  terms_url: https://example.com/cards/axis-shop-plus
+  effective_date: '2026-04-01'
+  last_verified: '2026-08-20'
+  owner: ops@company.com
+  confidence: high
+notes: 'Amazon co-brand. Demonstrates post_cap=0: earning stops dead past the cap.'

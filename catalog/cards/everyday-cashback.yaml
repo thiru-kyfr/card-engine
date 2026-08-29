@@ -1,0 +1,75 @@
+# Everyday Cashback — Example Bank
+# DUMMY DATA. Illustrative structure for engine development only.
+
+card_id: everyday-cashback
+name: Everyday Cashback
+issuer: Example Bank
+network:
+  name: visa
+  tier: platinum
+tier: entry
+status: active
+gates:
+  min_age: 18
+  max_age: 65
+  allowed_employment:
+  - salaried
+  - self_employed
+  - student
+  min_income:
+    salaried: 300000
+    self_employed: 400000
+    student: 0
+base:
+  points_per_unit: 1
+  unit_inr: 100
+  currency: cashback
+fee:
+  annual: 500
+  joining: 0
+  waiver_threshold: 100000
+  gst_pct: 18
+forex_markup_pct: 3.5
+welcome:
+  points: 500
+  condition: Spend ₹10,000 in the first 30 days
+accelerators:
+- id: ec-online
+  scope:
+    type: category
+    value: online_shopping
+  multiplier: 5
+  basis: total
+  cap:
+    type: spend
+    value: 10000
+    window: statement_cycle
+  post_cap: 1
+  priority: 3
+redemption:
+- channel: cashback
+  inr_per_point: 1.0
+  min_points: 500
+  fee: 0
+  is_default: true
+milestones: []
+exclusions:
+- category: rent
+  treatment: zero_earn
+- category: fuel
+  treatment: zero_earn
+- category: wallet_load
+  treatment: zero_earn
+- category: government
+  treatment: zero_earn
+- category: insurance
+  treatment: base_only
+- category: jewellery
+  treatment: base_only
+meta:
+  terms_url: https://example.com/cards/everyday-cashback
+  effective_date: '2026-04-01'
+  last_verified: '2026-08-20'
+  owner: ops@company.com
+  confidence: high
+notes: Flat cashback card. 1 point = ₹1, so the base rate is a true 1%.

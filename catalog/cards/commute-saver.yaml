@@ -1,0 +1,100 @@
+# Commute Saver — Example Bank
+# DUMMY DATA. Illustrative structure for engine development only.
+
+card_id: commute-saver
+name: Commute Saver
+issuer: Example Bank
+network:
+  name: rupay
+tier: entry
+status: active
+gates:
+  min_age: 18
+  max_age: 65
+  allowed_employment:
+  - salaried
+  - self_employed
+  - student
+  min_income:
+    salaried: 200000
+    self_employed: 300000
+    student: 0
+base:
+  points_per_unit: 1
+  unit_inr: 100
+  currency: points
+fee:
+  annual: 250
+  joining: 0
+  waiver_threshold: 60000
+  gst_pct: 18
+forex_markup_pct: 3.5
+accelerators:
+- id: cs-transit
+  scope:
+    type: category
+    value: cabs_transit
+  multiplier: 5
+  basis: total
+  cap:
+    type: spend
+    value: 4000
+    window: statement_cycle
+  post_cap: 1
+  priority: 3
+- id: cs-telecom
+  scope:
+    type: category
+    value: telecom
+  multiplier: 5
+  basis: total
+  cap:
+    type: spend
+    value: 2000
+    window: statement_cycle
+  post_cap: 1
+  priority: 3
+- id: cs-utilities
+  scope:
+    type: category
+    value: utilities
+  multiplier: 3
+  basis: total
+  cap:
+    type: spend
+    value: 3000
+    window: statement_cycle
+  post_cap: 1
+  priority: 3
+redemption:
+- channel: cashback
+  inr_per_point: 0.5
+  min_points: 200
+  fee: 0
+  is_default: true
+- channel: voucher
+  inr_per_point: 0.55
+  min_points: 1000
+  fee: 0
+  is_default: false
+milestones: []
+exclusions:
+- category: rent
+  treatment: zero_earn
+- category: fuel
+  treatment: zero_earn
+- category: wallet_load
+  treatment: zero_earn
+- category: government
+  treatment: zero_earn
+- category: insurance
+  treatment: base_only
+- category: jewellery
+  treatment: base_only
+meta:
+  terms_url: https://example.com/cards/commute-saver
+  effective_date: '2026-04-01'
+  last_verified: '2026-08-20'
+  owner: ops@company.com
+  confidence: high
+notes: Low-fee utility card with tight caps — exercises the cap-overflow path hard.

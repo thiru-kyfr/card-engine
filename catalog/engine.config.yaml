@@ -1,0 +1,37 @@
+# Engine tunables. Config, not code — change these without a deploy.
+# Every value here mirrors a row in the card_engine_catalog.xlsx engine_config sheet.
+
+gst_pct: 18
+tiebreak_band_pct: 10
+
+# Positional weights for the user's ranked spend categories.
+# These affect the TIEBREAK ONLY — never the NAV. The rupee amounts already
+# carry the weighting in the money math; applying it twice would break NAV.
+rank_weight_1: 3
+rank_weight_2: 2
+rank_weight_3: 1
+
+fit_weight_category_coverage: 0.60
+fit_weight_reward_type_match: 0.25
+fit_weight_merchant_overlap: 0.15
+
+# base_rate = the residual bucket always earns base rate (conservative, v1).
+residual_treatment: base_rate
+
+# ── v1 decisions. Each of these is a deliberate, documented simplification. ──
+welcome_bonus_in_nav: false        # reported as a separate first-year line
+benefits_in_nav: false             # lounge/insurance excluded entirely
+redemption_friction_enabled: false # no realization factor applied
+credit_score_enabled: false        # no credit score collected
+fee_gate_mode: hard_sticker        # sticker fee over budget = card dropped
+
+# Applied only when redemption_friction_enabled is true.
+redemption_friction:
+  cashback: 1.0
+  voucher: 0.9
+  portal: 0.85
+  airmiles: 0.7
+  merchandise: 0.9
+
+min_categories_collected: 3
+catalog_staleness_alert_days: 90

@@ -1,0 +1,69 @@
+# Legacy Classic — Example Bank
+# DUMMY DATA. Illustrative structure for engine development only.
+
+card_id: legacy-classic
+name: Legacy Classic
+issuer: Example Bank
+network:
+  name: visa
+tier: entry
+status: discontinued
+gates:
+  min_age: 18
+  max_age: 65
+  allowed_employment:
+  - salaried
+  - self_employed
+  min_income:
+    salaried: 250000
+    self_employed: 350000
+base:
+  points_per_unit: 1
+  unit_inr: 150
+  currency: points
+fee:
+  annual: 300
+  joining: 0
+  waiver_threshold: 50000
+  gst_pct: 18
+forex_markup_pct: 3.5
+accelerators:
+- id: lc-departmental
+  scope:
+    type: category
+    value: departmental
+  multiplier: 2
+  basis: total
+  cap:
+    type: spend
+    value: 5000
+    window: statement_cycle
+  post_cap: 1
+  priority: 3
+redemption:
+- channel: cashback
+  inr_per_point: 0.2
+  min_points: 1000
+  fee: 0
+  is_default: true
+milestones: []
+exclusions:
+- category: rent
+  treatment: zero_earn
+- category: fuel
+  treatment: zero_earn
+- category: wallet_load
+  treatment: zero_earn
+- category: government
+  treatment: zero_earn
+- category: insurance
+  treatment: base_only
+- category: jewellery
+  treatment: base_only
+meta:
+  terms_url: https://example.com/cards/legacy-classic
+  effective_date: '2026-04-01'
+  last_verified: '2026-08-20'
+  owner: ops@company.com
+  confidence: high
+notes: Discontinued — proves the STATUS gate hides it from results entirely.

@@ -1,0 +1,124 @@
+# Curated co-brand merchant list for the frequent-merchant picker.
+# Feeds merchant_overlap in the TIEBREAK only - never the NAV.
+
+- merchant_id: amazon
+  display_name: Amazon
+  category_id: online_shopping
+  aliases:
+  - AMAZON
+  - AMZN
+  - Amazon Pay
+  has_cobrand_card: true
+  show_in_picker: true
+  cobrand_card_id: axis-shop-plus
+- merchant_id: flipkart
+  display_name: Flipkart
+  category_id: online_shopping
+  aliases:
+  - FLIPKART
+  - FKRT
+  has_cobrand_card: false
+  show_in_picker: true
+- merchant_id: swiggy
+  display_name: Swiggy
+  category_id: dining
+  aliases:
+  - SWIGGY
+  - Swiggy Instamart
+  has_cobrand_card: true
+  show_in_picker: true
+  cobrand_card_id: dine-club
+- merchant_id: zomato
+  display_name: Zomato
+  category_id: dining
+  aliases:
+  - ZOMATO
+  - Blinkit
+  has_cobrand_card: false
+  show_in_picker: true
+- merchant_id: myntra
+  display_name: Myntra
+  category_id: apparel
+  aliases:
+  - MYNTRA
+  has_cobrand_card: false
+  show_in_picker: true
+- merchant_id: bigbasket
+  display_name: BigBasket
+  category_id: groceries
+  aliases:
+  - BIGBASKET
+  - BB Daily
+  has_cobrand_card: false
+  show_in_picker: true
+- merchant_id: dmart
+  display_name: DMart
+  category_id: groceries
+  aliases:
+  - AVENUE SUPERMARTS
+  - DMART
+  has_cobrand_card: false
+  show_in_picker: true
+- merchant_id: uber
+  display_name: Uber
+  category_id: cabs_transit
+  aliases:
+  - UBER
+  - Uber India
+  has_cobrand_card: false
+  show_in_picker: true
+- merchant_id: makemytrip
+  display_name: MakeMyTrip
+  category_id: travel_air
+  aliases:
+  - MMT
+  - MakeMyTrip
+  has_cobrand_card: true
+  show_in_picker: true
+  cobrand_card_id: travel-elite
+- merchant_id: indigo
+  display_name: IndiGo
+  category_id: travel_air
+  aliases:
+  - INTERGLOBE
+  - 6E
+  has_cobrand_card: false
+  show_in_picker: true
+- merchant_id: taj
+  display_name: Taj Hotels
+  category_id: travel_hotel
+  aliases:
+  - IHCL
+  - TAJ
+  has_cobrand_card: false
+  show_in_picker: true
+- merchant_id: netflix
+  display_name: Netflix
+  category_id: entertainment
+  aliases:
+  - NETFLIX
+  has_cobrand_card: false
+  show_in_picker: true
+- merchant_id: bookmyshow
+  display_name: BookMyShow
+  category_id: entertainment
+  aliases:
+  - BIGTREE
+  - BMS
+  has_cobrand_card: false
+  show_in_picker: true
+- merchant_id: croma
+  display_name: Croma
+  category_id: electronics
+  aliases:
+  - INFINITI RETAIL
+  - CROMA
+  has_cobrand_card: false
+  show_in_picker: true
+- merchant_id: apollo
+  display_name: Apollo Pharmacy
+  category_id: healthcare
+  aliases:
+  - APOLLO
+  has_cobrand_card: false
+  show_in_picker: true

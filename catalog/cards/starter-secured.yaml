@@ -1,0 +1,75 @@
+# Starter Secured — Example Bank
+# DUMMY DATA. Illustrative structure for engine development only.
+
+card_id: starter-secured
+name: Starter Secured
+issuer: Example Bank
+network:
+  name: rupay
+tier: entry
+status: active
+gates:
+  min_age: 18
+  max_age: 65
+  allowed_employment:
+  - salaried
+  - self_employed
+  - student
+  min_income:
+    salaried: 0
+    self_employed: 0
+    student: 0
+base:
+  points_per_unit: 1
+  unit_inr: 100
+  currency: points
+fee:
+  annual: 0
+  joining: 0
+  gst_pct: 18
+forex_markup_pct: 3.5
+accelerators:
+- id: ss-utilities
+  scope:
+    type: category
+    value: utilities
+  multiplier: 2
+  basis: total
+  cap:
+    type: spend
+    value: 5000
+    window: statement_cycle
+  post_cap: 1
+  priority: 3
+redemption:
+- channel: cashback
+  inr_per_point: 0.2
+  min_points: 500
+  fee: 0
+  is_default: true
+- channel: voucher
+  inr_per_point: 0.25
+  min_points: 1000
+  fee: 0
+  is_default: false
+milestones: []
+exclusions:
+- category: rent
+  treatment: zero_earn
+- category: fuel
+  treatment: zero_earn
+- category: wallet_load
+  treatment: zero_earn
+- category: government
+  treatment: zero_earn
+- category: insurance
+  treatment: base_only
+- category: jewellery
+  treatment: base_only
+meta:
+  terms_url: https://example.com/cards/starter-secured
+  effective_date: '2026-04-01'
+  last_verified: '2026-08-20'
+  owner: ops@company.com
+  confidence: high
+notes: Entry/secured card. The floor of the catalog — always eligible, always available.
