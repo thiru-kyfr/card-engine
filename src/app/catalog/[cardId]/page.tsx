@@ -2,9 +2,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { loadCatalog } from "@/catalog/load";
 import { formatInr, formatLakh, formatPoints } from "@/engine/format";
-import { Card, Callout, Pill, SectionLabel } from "@/components/ui";
+import { Card, Callout, Pill, SectionTitle, CardVisual } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
+
+const CHANNEL_LABEL: Record<string, string> = {
+  cashback: "Cashback",
+  voucher: "Vouchers",
+  portal: "Travel portal",
+  airmiles: "Airline miles",
+  merchandise: "Merchandise",
+};
 
 export default async function CardDetail({
   params,
@@ -34,36 +42,34 @@ export default async function CardDetail({
         </Link>
       </p>
 
-      <div className="mb-8">
-        <div className="mb-2 flex flex-wrap items-center gap-1.5">
-          <Pill tone={card.status === "active" ? "teal" : "rose"}>{card.status}</Pill>
-          <Pill>{card.tier.replace("_", " ")}</Pill>
-          <Pill>
-            {card.network.name}
-            {card.network.tier ? ` ${card.network.tier}` : ""}
-          </Pill>
-          <Pill tone={card.meta.confidence === "high" ? "teal" : "gold"}>
-            data {card.meta.confidence}
-          </Pill>
+      <div className="mb-8 grid gap-6 sm:grid-cols-[minmax(0,240px)_1fr] sm:items-center">
+        <CardVisual name={card.name} issuer={card.issuer} network={card.network.name} tier={card.tier} />
+        <div>
+          <div className="mb-2 flex flex-wrap items-center gap-1.5">
+            <Pill>{card.tier.replace("_", " ")}</Pill>
+            <Pill>
+              {card.network.name}
+              {card.network.tier ? ` ${card.network.tier}` : ""}
+            </Pill>
+          </div>
+          <h1 className="text-3xl leading-tight">{card.name}</h1>
+          <p className="text-[14px]" style={{ color: "var(--ink-muted)" }}>
+            {card.issuer}
+          </p>
         </div>
-        <h1 className="text-3xl leading-tight">{card.name}</h1>
-        <p className="text-[14px]" style={{ color: "var(--ink-muted)" }}>
-          {card.issuer}
-        </p>
       </div>
 
       {card.status !== "active" && (
         <div className="mb-6">
           <Callout tone="rose">
-            This card is <b>{card.status}</b> and is never returned by the engine. It stays in the
-            catalog for history.
+            This card is no longer available and won&rsquo;t appear in your results.
           </Callout>
         </div>
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="p-5">
-          <SectionLabel>Earning</SectionLabel>
+          <SectionTitle>Earning</SectionTitle>
           <KV k="Base rate" v={`${card.base.points_per_unit} ${card.base.currency} per ${formatInr(card.base.unit_inr)}`} />
           <KV k="Points expiry" v={card.points_expiry_months ? `${card.points_expiry_months} months` : "No expiry"} />
           {card.welcome?.points ? (
@@ -72,7 +78,7 @@ export default async function CardDetail({
         </Card>
 
         <Card className="p-5">
-          <SectionLabel>Cost</SectionLabel>
+          <SectionTitle>Cost</SectionTitle>
           <KV k="Annual fee" v={card.fee.annual === 0 ? "Free" : formatInr(card.fee.annual)} />
           <KV k="Joining fee" v={card.fee.joining ? formatInr(card.fee.joining) : "None"} />
           <KV
@@ -84,7 +90,7 @@ export default async function CardDetail({
         </Card>
 
         <Card className="p-5">
-          <SectionLabel>Eligibility gates</SectionLabel>
+          <SectionTitle>Eligibility</SectionTitle>
           <KV k="Age" v={`${card.gates.min_age}${card.gates.max_age ? `–${card.gates.max_age}` : "+"}`} />
           <KV k="Employment" v={card.gates.allowed_employment.map((e) => e.replace("_", "-")).join(", ")} />
           {Object.entries(card.gates.min_income).map(([k, v]) => (
@@ -93,19 +99,18 @@ export default async function CardDetail({
         </Card>
 
         <Card className="p-5">
-          <SectionLabel>Catalog metadata</SectionLabel>
-          <KV k="Terms effective" v={card.meta.effective_date ?? "—"} />
-          <KV k="Last verified" v={card.meta.last_verified ?? "never"} />
-          <KV k="Owner" v={card.meta.owner ?? "unassigned"} />
+          <SectionTitle>Source & verification</SectionTitle>
+          <KV k="Terms effective from" v={card.meta.effective_date ?? "—"} />
+          <KV k="Last checked" v={card.meta.last_verified ?? "—"} />
           {card.meta.terms_url && (
-            <KV k="Terms" v={<span style={{ color: "var(--ink-faint)" }}>{card.meta.terms_url}</span>} />
+            <KV k="Issuer terms" v={<span style={{ color: "var(--ink-faint)" }}>{card.meta.terms_url}</span>} />
           )}
         </Card>
       </div>
 
       <div className="mt-4">
         <Card className="overflow-x-auto p-5">
-          <SectionLabel>Accelerators</SectionLabel>
+          <SectionTitle>Accelerators</SectionTitle>
           {card.accelerators.length === 0 ? (
             <p className="text-[13.5px]" style={{ color: "var(--ink-muted)" }}>
               None — this card earns the base rate everywhere.
@@ -114,7 +119,7 @@ export default async function CardDetail({
             <table className="w-full text-[12.5px]" style={{ borderCollapse: "collapse" }}>
               <thead>
                 <tr>
-                  {["Rule", "Category", "Multiplier", "Basis", "Cap", "Past cap"].map((h) => (
+                  {["Category", "Rate", "How it stacks", "Spend cap", "Past the cap"].map((h) => (
                     <th
                       key={h}
                       className="border-b px-2 py-2 text-left font-mono-num text-[10px] font-medium uppercase tracking-[0.05em]"
@@ -128,9 +133,6 @@ export default async function CardDetail({
               <tbody>
                 {card.accelerators.map((a) => (
                   <tr key={a.id}>
-                    <td className="border-b px-2 py-2 font-mono-num text-[11px]" style={{ borderColor: "var(--line)", color: "var(--ink-faint)" }}>
-                      {a.id}
-                    </td>
                     <td className="border-b px-2 py-2" style={{ borderColor: "var(--line)" }}>
                       {catName(a.scope.value)}
                     </td>
@@ -139,14 +141,14 @@ export default async function CardDetail({
                     </td>
                     <td className="border-b px-2 py-2" style={{ borderColor: "var(--line)" }}>
                       {a.basis === "additional" ? (
-                        <Pill tone="gold">additional (= {a.multiplier + 1}× total)</Pill>
+                        <Pill tone="gold">on top of base (= {a.multiplier + 1}× total)</Pill>
                       ) : (
-                        "total"
+                        "replaces base rate"
                       )}
                     </td>
                     <td className="border-b px-2 py-2 font-mono-num" style={{ borderColor: "var(--line)" }}>
                       {a.cap.type === "none"
-                        ? "uncapped"
+                        ? "No cap"
                         : a.cap.type === "spend"
                           ? `${formatInr(a.cap.value!)} spend`
                           : `${formatPoints(a.cap.value!)} pts`}
@@ -155,7 +157,7 @@ export default async function CardDetail({
                       {a.post_cap === 0 ? (
                         <Pill tone="rose">stops earning</Pill>
                       ) : (
-                        <span style={{ color: "var(--ink-muted)" }}>reverts to base</span>
+                        <span style={{ color: "var(--ink-muted)" }}>reverts to base rate</span>
                       )}
                     </td>
                   </tr>
@@ -168,7 +170,7 @@ export default async function CardDetail({
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <Card className="p-5">
-          <SectionLabel>Redemption</SectionLabel>
+          <SectionTitle>Redemption</SectionTitle>
           <table className="w-full text-[12.5px]" style={{ borderCollapse: "collapse" }}>
             <tbody>
               {[...card.redemption]
@@ -176,7 +178,7 @@ export default async function CardDetail({
                 .map((r) => (
                   <tr key={r.channel}>
                     <td className="border-b px-2 py-2" style={{ borderColor: "var(--line)" }}>
-                      {r.channel}
+                      {CHANNEL_LABEL[r.channel] ?? r.channel}
                       {r.is_default && (
                         <span className="ml-1.5">
                           <Pill tone="teal">default</Pill>
@@ -201,7 +203,7 @@ export default async function CardDetail({
         </Card>
 
         <Card className="p-5">
-          <SectionLabel>Exclusions</SectionLabel>
+          <SectionTitle>Exclusions</SectionTitle>
           <div className="flex flex-wrap gap-2">
             {card.exclusions.length === 0 && (
               <span className="text-[13px]" style={{ color: "var(--ink-muted)" }}>
@@ -219,7 +221,7 @@ export default async function CardDetail({
               >
                 {catName(e.category)}
                 <span className="ml-1.5 font-mono-num text-[10px]" style={{ opacity: 0.7 }}>
-                  {e.treatment.replace("_", " ")}
+                  {e.treatment === "zero_earn" ? "no points earned" : "base rate only"}
                 </span>
               </span>
             ))}
@@ -228,7 +230,7 @@ export default async function CardDetail({
           {card.milestones.length > 0 && (
             <>
               <div className="mt-5">
-                <SectionLabel>Milestones</SectionLabel>
+                <SectionTitle>Milestones</SectionTitle>
               </div>
               {card.milestones.map((m) => (
                 <KV
@@ -242,11 +244,6 @@ export default async function CardDetail({
         </Card>
       </div>
 
-      {card.notes && (
-        <p className="mt-6 text-[12.5px]" style={{ color: "var(--ink-faint)" }}>
-          {card.notes}
-        </p>
-      )}
     </div>
   );
 }

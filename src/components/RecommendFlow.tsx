@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import type {
   Category,
   Merchant,
@@ -12,22 +11,87 @@ import type {
 } from "@/engine/types";
 import { formatInr, formatLakh } from "@/engine/format";
 import { ResultsView } from "./ResultsView";
-import { Card, Callout, Pill, SectionLabel } from "./ui";
+import { CREDIT_SCORE_OPTIONS, type CreditScoreBucket } from "./creditScore";
+import {
+  Card,
+  Callout,
+  SectionTitle,
+  FieldLabel,
+  Button,
+  Chip,
+  IconTile,
+  Stepper,
+  AmountPicker,
+  StepProgress,
+  Pill,
+} from "./ui";
 
-const CHANNELS: { id: RedemptionChannel; label: string; hint: string }[] = [
-  { id: "cashback", label: "Cashback", hint: "Statement credit, automatic" },
-  { id: "voucher", label: "Vouchers", hint: "Gift cards and brand vouchers" },
-  { id: "portal", label: "Travel portal", hint: "Book through the issuer" },
-  { id: "airmiles", label: "Airline miles", hint: "Transfer to airline partners" },
+const CATEGORY_ICON: Record<string, string> = {
+  dining: "🍽️",
+  groceries: "🛒",
+  online_shopping: "🛍️",
+  travel_air: "✈️",
+  travel_hotel: "🏨",
+  cabs_transit: "🚕",
+  entertainment: "🎬",
+  apparel: "👗",
+  electronics: "💻",
+  departmental: "🏬",
+  utilities: "💡",
+  telecom: "📱",
+  healthcare: "💊",
+  education: "🎓",
+  international: "🌍",
+};
+const CATEGORY_ICON_FALLBACK = "💳";
+
+const CHANNELS: { id: RedemptionChannel; label: string; hint: string; icon: string }[] = [
+  { id: "cashback", label: "Cashback", hint: "Statement credit, automatic", icon: "💰" },
+  { id: "voucher", label: "Vouchers", hint: "Gift cards and brand vouchers", icon: "🎁" },
+  { id: "portal", label: "Travel portal", hint: "Book through the issuer", icon: "🧳" },
+  { id: "airmiles", label: "Airline miles", hint: "Transfer to airline partners", icon: "🛫" },
 ];
 
-const EMPLOYMENTS: { id: EmploymentType; label: string }[] = [
-  { id: "salaried", label: "Salaried" },
-  { id: "self_employed", label: "Self-employed" },
-  { id: "student", label: "Student" },
+const EMPLOYMENTS: { id: EmploymentType; label: string; hint: string; icon: string }[] = [
+  { id: "salaried", label: "Salaried", hint: "A regular monthly paycheck", icon: "💼" },
+  { id: "self_employed", label: "Self-employed", hint: "Freelance, business or practice", icon: "🧑‍💻" },
+  { id: "student", label: "Student", hint: "Still studying", icon: "🎓" },
 ];
 
-const STEPS = ["Your spending", "About you", "Preferences"] as const;
+const MONTHLY_INCOME_PRESETS = [
+  { label: "Under ₹25K", value: 20000 },
+  { label: "₹25–50K", value: 37500 },
+  { label: "₹50K–1L", value: 75000 },
+  { label: "₹1–2L", value: 150000 },
+  { label: "₹2L+", value: 250000 },
+];
+
+const SPEND_PRESETS = [
+  { label: "₹2K", value: 2000 },
+  { label: "₹5K", value: 5000 },
+  { label: "₹10K", value: 10000 },
+  { label: "₹20K", value: 20000 },
+  { label: "₹40K", value: 40000 },
+];
+
+const RESIDUAL_PRESETS = [
+  { label: "₹5K", value: 5000 },
+  { label: "₹15K", value: 15000 },
+  { label: "₹30K", value: 30000 },
+  { label: "₹50K", value: 50000 },
+  { label: "₹1L", value: 100000 },
+];
+
+const FEE_PRESETS = [
+  { label: "Free only", value: 0 },
+  { label: "Up to ₹1K", value: 1000 },
+  { label: "Up to ₹5K", value: 5000 },
+  { label: "Up to ₹15K", value: 15000 },
+  { label: "No limit", value: 60000 },
+];
+
+const STEPS = ["About you", "Your spending", "Preferences"] as const;
+const SPENDING_STEP = 1;
 
 type SlotState = { category_id: string; monthly_inr: number };
 
@@ -40,15 +104,18 @@ export function RecommendFlow({
 }) {
   const [step, setStep] = useState(0);
 
+  const [age, setAge] = useState(30);
+  const [employment, setEmployment] = useState<EmploymentType>("salaried");
+  const [monthlyIncome, setMonthlyIncome] = useState(100000);
+  const [creditScore, setCreditScore] = useState<CreditScoreBucket>("unsure");
+
   const [slots, setSlots] = useState<SlotState[]>([
     { category_id: "dining", monthly_inr: 8000 },
     { category_id: "online_shopping", monthly_inr: 12000 },
     { category_id: "travel_air", monthly_inr: 5000 },
   ]);
   const [residual, setResidual] = useState(15000);
-  const [age, setAge] = useState(30);
-  const [employment, setEmployment] = useState<EmploymentType>("salaried");
-  const [income, setIncome] = useState(1200000);
+
   const [channel, setChannel] = useState<RedemptionChannel>("voucher");
   const [feeComfort, setFeeComfort] = useState(5000);
   const [pickedMerchants, setPickedMerchants] = useState<string[]>([]);
@@ -87,7 +154,7 @@ export function RecommendFlow({
     const profile: UserProfile = {
       age,
       employment,
-      annual_income_inr: income,
+      annual_income_inr: monthlyIncome * 12,
       spend: slots.filter((s) => s.monthly_inr > 0),
       residual_monthly_inr: residual,
       preferred_channel: channel,
@@ -112,7 +179,7 @@ export function RecommendFlow({
       setStep(3);
       requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
     } catch {
-      setError("Could not reach the engine. Is the server running?");
+      setError("We couldn't reach our servers. Check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -122,6 +189,7 @@ export function RecommendFlow({
     return (
       <ResultsView
         result={result}
+        creditScore={creditScore}
         onRestart={() => {
           setResult(null);
           setStep(0);
@@ -143,77 +211,164 @@ export function RecommendFlow({
         <h1 className="text-3xl leading-tight">{STEPS[step]}</h1>
       </div>
 
-      {/* progress */}
-      <div className="mb-8 flex gap-1.5">
-        {STEPS.map((s, i) => (
-          <div
-            key={s}
-            className="h-1 flex-1 rounded-full transition-colors"
-            style={{ background: i <= step ? "var(--teal)" : "var(--line)" }}
-          />
-        ))}
-      </div>
+      <StepProgress steps={STEPS} current={step} />
 
-      {/* ── STEP 1 ── */}
+      {/* ── STEP 1 — About you ── */}
       {step === 0 && (
         <div className="space-y-4">
           <Card className="p-6">
-            <SectionLabel>Your biggest spend categories</SectionLabel>
-            <p className="mb-5 text-[13.5px]" style={{ color: "var(--ink-muted)" }}>
-              Name your top three and roughly what you spend per month. The rupee amounts are what
-              drive the ranking — there is no separate weighting on top of them.
-            </p>
+            <SectionTitle description="This decides which cards you're even eligible to apply for — nothing more, nothing hidden.">
+              A little about you
+            </SectionTitle>
 
-            <div className="space-y-4">
+            <FieldLabel>Employment</FieldLabel>
+            <div className="mt-2 grid gap-2 sm:grid-cols-3">
+              {EMPLOYMENTS.map((e) => (
+                <IconTile
+                  key={e.id}
+                  icon={e.icon}
+                  label={e.label}
+                  hint={e.hint}
+                  selected={employment === e.id}
+                  onClick={() => setEmployment(e.id)}
+                />
+              ))}
+            </div>
+
+            <div className="mt-6">
+              <Stepper label="Age" value={age} onChange={setAge} min={16} max={80} suffix="yrs" />
+              <input
+                type="range"
+                aria-label="Age slider"
+                min={16}
+                max={80}
+                value={age}
+                onChange={(e) => setAge(Number(e.target.value))}
+                className="mt-3"
+              />
+            </div>
+
+            <div className="mt-6">
+              <FieldLabel>Monthly income</FieldLabel>
+
+              <div className="mt-2 flex flex-wrap gap-2">
+                {MONTHLY_INCOME_PRESETS.map((p) => (
+                  <Chip
+                    key={p.label}
+                    selected={monthlyIncome === p.value}
+                    onClick={() => setMonthlyIncome(p.value)}
+                  >
+                    {p.label}
+                  </Chip>
+                ))}
+              </div>
+
+              <div className="mt-5 flex items-baseline gap-1.5">
+                <span className="font-mono-num text-[34px] font-semibold leading-none" style={{ color: "var(--ink)" }}>
+                  {formatInr(monthlyIncome)}
+                </span>
+                <span className="text-[13px]" style={{ color: "var(--ink-faint)" }}>
+                  / month
+                </span>
+              </div>
+              <input
+                type="range"
+                aria-label="Monthly income slider"
+                min={0}
+                max={500000}
+                step={5000}
+                value={monthlyIncome}
+                onChange={(e) => setMonthlyIncome(Number(e.target.value))}
+                className="mt-3"
+              />
+              <p className="mt-1.5 text-[11.5px]" style={{ color: "var(--ink-faint)" }}>
+                ≈ {formatLakh(monthlyIncome * 12)} a year
+              </p>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <SectionTitle description="This never filters out a card — it only shows how likely you are to be approved for each match. Skip it if you don't know.">
+              Your credit score <span style={{ fontWeight: 400, color: "var(--ink-faint)" }}>(optional)</span>
+            </SectionTitle>
+            <div className="flex flex-wrap gap-2">
+              {CREDIT_SCORE_OPTIONS.map((s) => (
+                <Chip key={s.id} selected={creditScore === s.id} onClick={() => setCreditScore(s.id)}>
+                  {s.label}
+                  <span style={{ color: "var(--ink-faint)" }}> · {s.hint}</span>
+                </Chip>
+              ))}
+            </div>
+          </Card>
+
+          <Callout tone="teal">
+            <b>This is a self-estimate, not a bureau check.</b> Approval always comes down to the
+            issuer&rsquo;s own assessment, so a recommended card can still be declined at
+            application.
+          </Callout>
+        </div>
+      )}
+
+      {/* ── STEP 2 — Your spending ── */}
+      {step === 1 && (
+        <div className="space-y-4">
+          <Card className="p-6">
+            <SectionTitle description="Name your top three and roughly what you spend per month. These amounts are what drive the ranking — there is no separate weighting on top of them.">
+              Your biggest spend categories
+            </SectionTitle>
+
+            <div className="space-y-6">
               {slots.map((slot, i) => (
-                <div key={i} className="flex flex-wrap items-center gap-3">
-                  <span
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded font-mono-num text-[11px] font-semibold"
-                    style={{ background: "var(--teal-soft)", color: "var(--teal)" }}
-                  >
-                    {i + 1}
-                  </span>
-                  <select
-                    aria-label={`Category ${i + 1}`}
-                    value={slot.category_id}
-                    onChange={(e) => setSlot(i, { category_id: e.target.value })}
-                    className="min-w-[200px] flex-1 rounded-lg border px-3 py-2 text-[13.5px]"
-                    style={{
-                      background: "var(--paper-raised)",
-                      borderColor: "var(--line-strong)",
-                      color: "var(--ink)",
-                    }}
-                  >
-                    {categories.map((c) => (
-                      <option key={c.category_id} value={c.category_id}>
-                        {c.display_name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="flex min-w-[220px] flex-1 items-center gap-3">
-                    <input
-                      type="range"
-                      aria-label={`Monthly spend for category ${i + 1}`}
+                <div key={i}>
+                  <div className="mb-3 flex flex-wrap items-center gap-3">
+                    <span
+                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded font-mono-num text-[11px] font-semibold"
+                      style={{ background: "var(--teal-soft)", color: "var(--teal)" }}
+                    >
+                      {i + 1}
+                    </span>
+                    <span className="text-[18px] leading-none" aria-hidden="true">
+                      {CATEGORY_ICON[slot.category_id] ?? CATEGORY_ICON_FALLBACK}
+                    </span>
+                    <select
+                      aria-label={`Category ${i + 1}`}
+                      value={slot.category_id}
+                      onChange={(e) => setSlot(i, { category_id: e.target.value })}
+                      className="min-w-[200px] flex-1 rounded-lg border px-3 py-2 text-[13.5px]"
+                      style={{
+                        background: "var(--paper-sunken)",
+                        borderColor: "var(--line-strong)",
+                        color: "var(--ink)",
+                      }}
+                    >
+                      {categories.map((c) => (
+                        <option key={c.category_id} value={c.category_id}>
+                          {CATEGORY_ICON[c.category_id] ?? CATEGORY_ICON_FALLBACK} {c.display_name}
+                        </option>
+                      ))}
+                    </select>
+                    {slots.length > 1 && (
+                      <button
+                        onClick={() => removeSlot(i)}
+                        aria-label={`Remove category ${i + 1}`}
+                        className="rounded px-2 py-1 text-[12px]"
+                        style={{ color: "var(--ink-faint)" }}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  <div className="pl-9">
+                    <AmountPicker
+                      label="Monthly spend"
+                      value={slot.monthly_inr}
+                      onChange={(n) => setSlot(i, { monthly_inr: n })}
                       min={0}
                       max={100000}
                       step={1000}
-                      value={slot.monthly_inr}
-                      onChange={(e) => setSlot(i, { monthly_inr: Number(e.target.value) })}
+                      presets={SPEND_PRESETS}
                     />
-                    <span className="w-20 shrink-0 text-right font-mono-num text-[13px]">
-                      {formatInr(slot.monthly_inr)}
-                    </span>
                   </div>
-                  {slots.length > 1 && (
-                    <button
-                      onClick={() => removeSlot(i)}
-                      aria-label={`Remove category ${i + 1}`}
-                      className="rounded px-2 py-1 text-[12px]"
-                      style={{ color: "var(--ink-faint)" }}
-                    >
-                      Remove
-                    </button>
-                  )}
                 </div>
               ))}
             </div>
@@ -221,7 +376,7 @@ export function RecommendFlow({
             {slots.length < 6 && (
               <button
                 onClick={addSlot}
-                className="mt-4 rounded-lg border px-3 py-1.5 text-[13px]"
+                className="mt-5 rounded-lg border px-3 py-1.5 text-[13px]"
                 style={{ borderColor: "var(--line-strong)", color: "var(--ink-muted)" }}
               >
                 + Add another category
@@ -239,25 +394,18 @@ export function RecommendFlow({
           </Card>
 
           <Card className="p-6">
-            <SectionLabel>Everything else</SectionLabel>
-            <p className="mb-4 text-[13.5px]" style={{ color: "var(--ink-muted)" }}>
-              All your other card spend in a month. This is mandatory — fee waivers and spend
-              milestones are calculated on your total, not just the named categories.
-            </p>
-            <div className="flex items-center gap-4">
-              <input
-                type="range"
-                aria-label="Residual monthly spend"
-                min={0}
-                max={200000}
-                step={1000}
-                value={residual}
-                onChange={(e) => setResidual(Number(e.target.value))}
-              />
-              <span className="w-24 shrink-0 text-right font-mono-num text-[15px] font-semibold">
-                {formatInr(residual)}
-              </span>
-            </div>
+            <SectionTitle description="All your other card spend in a month. This is mandatory — fee waivers and spend milestones are calculated on your total, not just the named categories.">
+              Everything else
+            </SectionTitle>
+            <AmountPicker
+              label="Residual monthly spend"
+              value={residual}
+              onChange={setResidual}
+              min={0}
+              max={200000}
+              step={1000}
+              presets={RESIDUAL_PRESETS}
+            />
             {residualDominates && (
               <div className="mt-4">
                 <Callout tone="gold">
@@ -278,159 +426,63 @@ export function RecommendFlow({
         </div>
       )}
 
-      {/* ── STEP 2 ── */}
-      {step === 1 && (
-        <div className="space-y-4">
-          <Card className="p-6">
-            <SectionLabel>Eligibility</SectionLabel>
-            <p className="mb-5 text-[13.5px]" style={{ color: "var(--ink-muted)" }}>
-              Issuers set minimum age and income by employment type. These decide which cards you
-              can actually be approved for.
-            </p>
-
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div>
-                <label className="mb-2 block font-mono-num text-[10.5px] uppercase tracking-[0.06em]" style={{ color: "var(--ink-faint)" }}>
-                  Age · <b style={{ color: "var(--ink)" }}>{age}</b>
-                </label>
-                <input
-                  type="range"
-                  min={16}
-                  max={80}
-                  value={age}
-                  onChange={(e) => setAge(Number(e.target.value))}
-                />
-              </div>
-              <div>
-                <label className="mb-2 block font-mono-num text-[10.5px] uppercase tracking-[0.06em]" style={{ color: "var(--ink-faint)" }}>
-                  Annual income · <b style={{ color: "var(--ink)" }}>{formatLakh(income)}</b>
-                </label>
-                <input
-                  type="range"
-                  min={0}
-                  max={6000000}
-                  step={100000}
-                  value={income}
-                  onChange={(e) => setIncome(Number(e.target.value))}
-                />
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <label className="mb-2 block font-mono-num text-[10.5px] uppercase tracking-[0.06em]" style={{ color: "var(--ink-faint)" }}>
-                Employment
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {EMPLOYMENTS.map((e) => (
-                  <button
-                    key={e.id}
-                    onClick={() => setEmployment(e.id)}
-                    aria-pressed={employment === e.id}
-                    className="rounded-full border px-4 py-2 text-[13px] transition-colors"
-                    style={
-                      employment === e.id
-                        ? { background: "var(--ink)", color: "var(--paper)", borderColor: "var(--ink)" }
-                        : { borderColor: "var(--line-strong)", color: "var(--ink-muted)" }
-                    }
-                  >
-                    {e.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </Card>
-
-          <Callout tone="teal">
-            <b>No credit score is collected in v1.</b> That keeps the form short, but it means a
-            recommended card can still be declined at application. See the README for the
-            documented trade-off.
-          </Callout>
-        </div>
-      )}
-
-      {/* ── STEP 3 ── */}
+      {/* ── STEP 3 — Preferences ── */}
       {step === 2 && (
         <div className="space-y-4">
           <Card className="p-6">
-            <SectionLabel>How do you want to be rewarded?</SectionLabel>
-            <p className="mb-5 text-[13.5px]" style={{ color: "var(--ink-muted)" }}>
-              This picks which redemption rate each card is valued at — the same pile of points can
-              be worth three times as much through one exit as another.
-            </p>
+            <SectionTitle description="This picks which redemption rate each card is valued at — the same pile of points can be worth three times as much through one exit as another.">
+              How do you want to be rewarded?
+            </SectionTitle>
             <div className="grid gap-2 sm:grid-cols-2">
               {CHANNELS.map((c) => (
-                <button
+                <IconTile
                   key={c.id}
+                  icon={c.icon}
+                  label={c.label}
+                  hint={c.hint}
+                  selected={channel === c.id}
                   onClick={() => setChannel(c.id)}
-                  aria-pressed={channel === c.id}
-                  className="rounded-lg border px-4 py-3 text-left transition-colors"
-                  style={
-                    channel === c.id
-                      ? { borderColor: "var(--teal)", background: "var(--teal-soft)" }
-                      : { borderColor: "var(--line-strong)" }
-                  }
-                >
-                  <div className="text-[14px] font-semibold">{c.label}</div>
-                  <div className="text-[12px]" style={{ color: "var(--ink-muted)" }}>
-                    {c.hint}
-                  </div>
-                </button>
+                />
               ))}
             </div>
           </Card>
 
           <Card className="p-6">
-            <SectionLabel>Annual fee budget</SectionLabel>
-            <p className="mb-4 text-[13.5px]" style={{ color: "var(--ink-muted)" }}>
-              A hard filter: any card whose sticker fee is above this is removed, even if the fee
-              would be waived at your spend level.
-            </p>
-            <div className="flex items-center gap-4">
-              <input
-                type="range"
-                aria-label="Annual fee budget"
-                min={0}
-                max={60000}
-                step={250}
-                value={feeComfort}
-                onChange={(e) => setFeeComfort(Number(e.target.value))}
-              />
-              <span className="w-24 shrink-0 text-right font-mono-num text-[15px] font-semibold">
-                {formatInr(feeComfort)}
-              </span>
-            </div>
+            <SectionTitle description="A hard filter: any card whose sticker fee is above this is removed, even if the fee would be waived at your spend level.">
+              What annual fee works for you?
+            </SectionTitle>
+            <AmountPicker
+              label="Fee budget"
+              value={feeComfort}
+              onChange={setFeeComfort}
+              min={0}
+              max={60000}
+              step={250}
+              presets={FEE_PRESETS}
+            />
           </Card>
 
           <Card className="p-6">
-            <SectionLabel>
-              Merchants you use often <span style={{ textTransform: "none" }}>(optional)</span>
-            </SectionLabel>
-            <p className="mb-4 text-[13.5px]" style={{ color: "var(--ink-muted)" }}>
-              Used only to break ties between cards that are close on money. Never changes the
-              value calculation itself.
-            </p>
+            <SectionTitle description="Used only to break ties between cards that are close on money. Never changes the value calculation itself.">
+              Merchants you use often <span style={{ fontWeight: 400, color: "var(--ink-faint)" }}>(optional)</span>
+            </SectionTitle>
             <div className="flex flex-wrap gap-2">
               {merchants.map((m) => {
                 const on = pickedMerchants.includes(m.merchant_id);
                 return (
-                  <button
+                  <Chip
                     key={m.merchant_id}
+                    selected={on}
                     onClick={() =>
                       setPickedMerchants((prev) =>
                         on ? prev.filter((x) => x !== m.merchant_id) : [...prev, m.merchant_id],
                       )
                     }
-                    aria-pressed={on}
-                    className="flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[13px] transition-colors"
-                    style={
-                      on
-                        ? { borderColor: "var(--teal)", background: "var(--teal-soft)", color: "var(--ink)" }
-                        : { borderColor: "var(--line-strong)", color: "var(--ink-muted)" }
-                    }
+                    className="gap-2"
                   >
                     {m.display_name}
                     {m.has_cobrand_card && <Pill tone="gold">co-brand</Pill>}
-                  </button>
+                  </Chip>
                 );
               })}
             </div>
@@ -442,43 +494,28 @@ export function RecommendFlow({
 
       {/* nav */}
       <div className="mt-8 flex items-center justify-between gap-4">
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setStep((s) => Math.max(0, s - 1))}
           disabled={step === 0}
-          className="rounded-lg border px-5 py-2.5 text-[13.5px] disabled:opacity-35"
-          style={{ borderColor: "var(--line-strong)", color: "var(--ink-muted)" }}
         >
           Back
-        </button>
+        </Button>
 
         {step < 2 ? (
-          <button
+          <Button
             onClick={() => setStep((s) => s + 1)}
-            disabled={duplicateCategory}
-            className="rounded-lg px-6 py-2.5 text-[13.5px] font-semibold disabled:opacity-40"
-            style={{ background: "var(--ink)", color: "var(--paper)" }}
+            disabled={step === SPENDING_STEP && duplicateCategory}
+            arrow
           >
             Continue
-          </button>
+          </Button>
         ) : (
-          <button
-            onClick={submit}
-            disabled={loading}
-            className="rounded-lg px-6 py-2.5 text-[13.5px] font-semibold disabled:opacity-60"
-            style={{ background: "var(--teal)", color: "#fff" }}
-          >
+          <Button onClick={submit} disabled={loading} arrow>
             {loading ? "Calculating…" : "Find my card"}
-          </button>
+          </Button>
         )}
       </div>
-
-      <p className="mt-6 text-[12px]" style={{ color: "var(--ink-faint)" }}>
-        Want to see the raw engine output instead?{" "}
-        <Link href="/debug" style={{ color: "var(--teal)" }}>
-          Open the debug view
-        </Link>
-        .
-      </p>
     </div>
   );
 }

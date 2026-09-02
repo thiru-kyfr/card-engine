@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { loadCatalog, CatalogError } from "@/catalog/load";
 import { DebugConsole } from "@/components/DebugConsole";
 import { Callout } from "@/components/ui";
@@ -5,6 +6,10 @@ import { Callout } from "@/components/ui";
 export const dynamic = "force-dynamic";
 
 export default function DebugPage() {
+  if (process.env.NODE_ENV === "production") {
+    notFound();
+  }
+
   try {
     const catalog = loadCatalog();
     return (

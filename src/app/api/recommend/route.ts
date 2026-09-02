@@ -48,6 +48,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: e.message, details: e.details }, { status: 500 });
     }
     console.error("[recommend] unexpected error", e);
-    return NextResponse.json({ error: "Engine failure." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Something went wrong on our end. Please try again." },
+      { status: 500 },
+    );
   }
 }

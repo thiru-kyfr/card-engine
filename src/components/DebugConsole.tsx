@@ -223,7 +223,7 @@ export function DebugConsole({
               onClick={() => run()}
               disabled={loading}
               className="rounded-lg px-5 py-2 text-[13px] font-semibold disabled:opacity-60"
-              style={{ background: "var(--teal)", color: "#fff" }}
+              style={{ background: "var(--teal)", color: "var(--on-teal)" }}
             >
               {loading ? "Running…" : "Run engine"}
             </button>

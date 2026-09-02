@@ -1,4 +1,4 @@
-import { loadCatalog, CatalogError, selectableCategories, pickerMerchants } from "@/catalog/load";
+import { loadCatalog, selectableCategories, pickerMerchants } from "@/catalog/load";
 import { RecommendFlow } from "@/components/RecommendFlow";
 import { Callout } from "@/components/ui";
 
@@ -13,19 +13,10 @@ export default function RecommendPage() {
         merchants={pickerMerchants(catalog)}
       />
     );
-  } catch (e) {
-    const err = e instanceof CatalogError ? e : null;
+  } catch {
     return (
       <Callout tone="rose">
-        <b>The catalog could not be loaded.</b>
-        <p className="mt-1">{err?.message ?? "Unknown error."}</p>
-        {err?.details?.length ? (
-          <ul className="mt-2 list-disc pl-5 font-mono-num text-[12px]">
-            {err.details.slice(0, 20).map((d, i) => (
-              <li key={i}>{d}</li>
-            ))}
-          </ul>
-        ) : null}
+        We&rsquo;re having trouble loading card data right now. Please try again shortly.
       </Callout>
     );
   }
