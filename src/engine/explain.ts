@@ -107,7 +107,7 @@ export function explain(result: CardResult, user: UserProfile): string[] {
 
   if (result.tiebreak_applied) {
     out.push(
-      `Ranked ahead of a card with slightly higher value because it better matches your biggest spend categories — within 10%, the money difference is smaller than the engine's own margin of error.`,
+      `Placed here over a card with a slightly higher value because it better matches your biggest spend categories — at this close a margin, fit is the more reliable signal.`,
     );
   }
 

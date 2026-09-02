@@ -178,7 +178,10 @@ export const engineConfigSchema = z.object({
   fit_weight_category_coverage: z.number().min(0).max(1).default(0.6),
   fit_weight_reward_type_match: z.number().min(0).max(1).default(0.25),
   fit_weight_merchant_overlap: z.number().min(0).max(1).default(0.15),
-  residual_treatment: z.enum(["base_rate", "persona_split"]).default("base_rate"),
+  // "persona_split" was considered (see README) but never implemented — valuation.ts
+  // always treats the residual as base_rate. Only accepting the real value here
+  // means a stray config edit fails loudly at boot instead of being silently ignored.
+  residual_treatment: z.literal("base_rate").default("base_rate"),
   welcome_bonus_in_nav: z.boolean().default(false),
   benefits_in_nav: z.boolean().default(false),
   redemption_friction_enabled: z.boolean().default(false),

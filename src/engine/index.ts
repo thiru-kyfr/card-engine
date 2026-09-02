@@ -43,6 +43,16 @@ export function recommend(catalog: Catalog, user: UserProfile): RecommendationRe
     warnings.push("No spend entered, so every card values at zero minus its fee.");
   }
 
+  // config.min_categories_collected sets the input-design floor ("top 3
+  // categories" per README); named categories below it mean the tiebreak fit
+  // score is running on partial signal, and every ranking is less trustworthy.
+  const namedCategoryCount = user.spend.filter((l) => l.monthly_inr > 0).length;
+  if (namedCategoryCount > 0 && namedCategoryCount < config.min_categories_collected) {
+    warnings.push(
+      `You've named ${namedCategoryCount} spend categor${namedCategoryCount === 1 ? "y" : "ies"} — naming at least ${config.min_categories_collected} makes the ranking noticeably more accurate.`,
+    );
+  }
+
   if (user.annual_income_inr > 0 && annualSpend > user.annual_income_inr * 0.8) {
     warnings.push(
       "Your stated card spend is more than 80% of your income — worth double-checking the amounts.",

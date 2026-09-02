@@ -21,7 +21,7 @@ export function runGates(
   if (card.status !== "active") {
     failures.push({
       code: "STATUS",
-      message: `This card is marked ${card.status} in the catalog.`,
+      message: `This card is currently ${card.status} and isn't available.`,
     });
     // A non-active card is never shown; no point evaluating further gates.
     return failures;

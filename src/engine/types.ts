@@ -138,7 +138,7 @@ export interface EngineConfig {
   fit_weight_category_coverage: number;
   fit_weight_reward_type_match: number;
   fit_weight_merchant_overlap: number;
-  residual_treatment: "base_rate" | "persona_split";
+  residual_treatment: "base_rate";
   welcome_bonus_in_nav: boolean;
   benefits_in_nav: boolean;
   redemption_friction_enabled: boolean;
