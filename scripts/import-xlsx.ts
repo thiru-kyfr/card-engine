@@ -404,11 +404,16 @@ async function main() {
   const catIds = new Set(parsedCategories.filter(Boolean).map((c) => c!.category_id));
   const cardIds = new Set(cards.map((c) => c.card_id as string));
   for (const c of cards) {
-    for (const a of c.accelerators as { id: string; scope: { type: string; value: string } }[]) {
+    // clean() drops these keys entirely when the sheet has no rows for this
+    // card, so they may be undefined rather than an empty array here.
+    const accelerators =
+      (c.accelerators as { id: string; scope: { type: string; value: string } }[] | undefined) ?? [];
+    const exclusions = (c.exclusions as { category: string }[] | undefined) ?? [];
+    for (const a of accelerators) {
       if (a.scope.type === "category" && !catIds.has(a.scope.value))
         errors.push(`cards[${c.card_id}]: accelerator '${a.id}' → unknown category '${a.scope.value}'`);
     }
-    for (const e of c.exclusions as { category: string }[]) {
+    for (const e of exclusions) {
       if (!catIds.has(e.category))
         errors.push(`cards[${c.card_id}]: exclusion → unknown category '${e.category}'`);
     }
