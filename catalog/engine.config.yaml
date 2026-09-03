@@ -19,7 +19,7 @@ redemption_friction:
   portal: 0.85
   airmiles: 0.7
   merchandise: 0.9
-fee_gate_mode: hard_sticker
+fee_gate_mode: waiver_aware
 credit_score_enabled: false
 min_categories_collected: 3
 catalog_staleness_alert_days: 90

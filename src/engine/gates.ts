@@ -56,8 +56,11 @@ export function runGates(
     }
   }
 
-  // Fee gate. v1 uses hard_sticker: a stated budget is a stated budget, and the
-  // waiver does not rescue a card here (it still reduces the cost in the NAV).
+  // Fee gate. waiver_aware: if the user's declared spend would cross the
+  // card's own waiver threshold, the fee is treated as ₹0 here too — the same
+  // spend figure that zeroes the fee in the NAV math also clears the gate.
+  // (hard_sticker remains available in config for a stricter "budget means
+  // budget" mode that ignores waiver reachability entirely.)
   if (card.fee.annual > user.fee_comfort_inr) {
     const waiverReachable =
       card.fee.waiver_threshold !== undefined && annualSpend >= card.fee.waiver_threshold;
