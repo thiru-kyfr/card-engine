@@ -2,10 +2,42 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
 import type { CardResult, RecommendationResult } from "@/engine/types";
 import { formatInr, formatPoints } from "@/engine/format";
-import { Card, Callout, Pill, SectionTitle, SectionLabel, Stat, Button, CardVisual } from "./ui";
+import {
+  Card,
+  Callout,
+  Pill,
+  SectionTitle,
+  SectionLabel,
+  Stat,
+  Button,
+  CardVisual,
+  AnimatedNumber,
+} from "./ui";
 import { approvalOdds, type CreditScoreBucket } from "./creditScore";
+
+const REVEAL = { type: "spring" as const, stiffness: 260, damping: 28 };
+
+/** A plus that squashes into a minus — the accordion-toggle icon, animated
+ * by scaling the vertical bar rather than crossfading two characters. */
+function PlusMinus({ open }: { open: boolean }) {
+  return (
+    <span className="relative inline-block h-3 w-3 shrink-0" aria-hidden="true">
+      <span
+        className="absolute left-0 top-1/2 h-[1.5px] w-3 -translate-y-1/2"
+        style={{ background: "var(--ink-faint)" }}
+      />
+      <motion.span
+        className="absolute left-1/2 top-0 h-3 w-[1.5px] -translate-x-1/2"
+        style={{ background: "var(--ink-faint)" }}
+        animate={{ scaleY: open ? 0 : 1 }}
+        transition={{ type: "spring", stiffness: 400, damping: 26 }}
+      />
+    </span>
+  );
+}
 
 const CHANNEL_LABEL: Record<string, string> = {
   cashback: "Cashback",
@@ -16,6 +48,11 @@ const CHANNEL_LABEL: Record<string, string> = {
 };
 
 const FEATURED_COUNT = 3;
+/** Total shown on screen is capped at FEATURED_COUNT + SECONDARY_COUNT (5) —
+ * a recommendation engine's job is to decide, not hand over a spreadsheet.
+ * Nothing beyond that is hidden forever: the eligible count above still
+ * states the true total, and the gated-cards disclosure covers the rest. */
+const SECONDARY_COUNT = 2;
 
 export function ResultsView({
   result,
@@ -29,7 +66,9 @@ export function ResultsView({
   const [showGated, setShowGated] = useState(false);
   const best = result.ranked[0];
   const featured = result.ranked.slice(0, FEATURED_COUNT);
-  const rest = result.ranked.slice(FEATURED_COUNT);
+  const rest = result.ranked.slice(FEATURED_COUNT, FEATURED_COUNT + SECONDARY_COUNT);
+  const shown = featured.length + rest.length;
+  const remaining = result.ranked.length - shown;
 
   return (
     <div>
@@ -41,6 +80,7 @@ export function ResultsView({
           >
             <span className="inline-block h-px w-4" style={{ background: "var(--teal)" }} />
             {result.ranked.length} card{result.ranked.length === 1 ? "" : "s"} you qualify for
+            {remaining > 0 ? ` · showing your best ${shown}` : ""}
           </p>
           <h1 className="text-3xl leading-tight">
             {best ? `Your top ${Math.min(FEATURED_COUNT, result.ranked.length)} matches` : "No card matches yet"}
@@ -63,7 +103,14 @@ export function ResultsView({
 
       <div className="space-y-5">
         {featured.map((r, i) => (
-          <FeaturedResult key={r.card.card_id} result={r} isBest={i === 0} creditScore={creditScore} />
+          <motion.div
+            key={r.card.card_id}
+            initial={{ opacity: 0, y: 22, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ ...REVEAL, delay: i * 0.09 }}
+          >
+            <FeaturedResult result={r} isBest={i === 0} creditScore={creditScore} />
+          </motion.div>
         ))}
       </div>
 
@@ -71,10 +118,26 @@ export function ResultsView({
         <div className="mt-8">
           <SectionLabel>Also worth a look</SectionLabel>
           <div className="space-y-2">
-            {rest.map((r) => (
-              <SecondaryRow key={r.card.card_id} result={r} />
+            {rest.map((r, i) => (
+              <motion.div
+                key={r.card.card_id}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ ...REVEAL, delay: FEATURED_COUNT * 0.09 + i * 0.05 }}
+              >
+                <SecondaryRow result={r} />
+              </motion.div>
             ))}
           </div>
+          {remaining > 0 && (
+            <p className="mt-3 text-[12.5px]" style={{ color: "var(--ink-faint)" }}>
+              {remaining} more card{remaining === 1 ? "" : "s"} you qualify for, ranked lower on
+              money.{" "}
+              <Link href="/catalog" style={{ color: "var(--teal)" }}>
+                Compare the full catalog →
+              </Link>
+            </p>
+          )}
         </div>
       )}
 
@@ -148,6 +211,7 @@ function FeaturedResult({
           issuer={result.card.issuer}
           network={result.card.network.name}
           tier={result.card.tier}
+          cardId={result.card.card_id}
         />
         <div className="flex flex-col justify-between">
           <div>
@@ -168,7 +232,9 @@ function FeaturedResult({
               {result.card.issuer} · {result.card.network.name}
               {result.card.network.tier ? ` ${result.card.network.tier}` : ""}
             </p>
-            <div className="font-mono-num text-3xl font-semibold">{formatInr(v.nav_inr)}</div>
+            <div className="font-mono-num text-3xl font-semibold">
+              <AnimatedNumber value={v.nav_inr} format={formatInr} />
+            </div>
             <div className="font-mono-num text-[11px]" style={{ color: "var(--ink-faint)" }}>
               estimated value / year
             </div>
@@ -207,9 +273,10 @@ function FeaturedResult({
         <button
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
-          className="text-[13px] font-medium"
+          className="flex items-center gap-2 text-[13px] font-medium"
           style={{ color: "var(--ink-muted)" }}
         >
+          <PlusMinus open={open} />
           {open ? "Hide the full arithmetic" : "Show the full arithmetic"}
         </button>
         <Link href={`/catalog/${result.card.card_id}`} className="text-[13px]" style={{ color: "var(--teal)" }}>
@@ -217,7 +284,19 @@ function FeaturedResult({
         </Link>
       </div>
 
-      {open && <Breakdown result={result} />}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: "easeInOut" }}
+            style={{ overflow: "hidden" }}
+          >
+            <Breakdown result={result} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Card>
   );
 }
@@ -247,36 +326,48 @@ function SecondaryRow({ result }: { result: CardResult }) {
         </div>
         <div className="flex items-center gap-3">
           <div className="text-right">
-            <div className="font-mono-num text-[15px] font-semibold">{formatInr(v.nav_inr)}</div>
+            <div className="font-mono-num text-[15px] font-semibold">
+              <AnimatedNumber value={v.nav_inr} format={formatInr} />
+            </div>
             <div className="font-mono-num text-[10px]" style={{ color: "var(--ink-faint)" }}>
               / year
             </div>
           </div>
-          <span style={{ color: "var(--ink-faint)" }}>{open ? "−" : "+"}</span>
+          <PlusMinus open={open} />
         </div>
       </button>
 
-      {open && (
-        <div className="border-t px-4 pb-4" style={{ borderColor: "var(--line)" }}>
-          {result.explanation && result.explanation.length > 0 && (
-            <ul className="space-y-1.5 pt-4">
-              {result.explanation.map((line, i) => (
-                <li key={i} className="flex gap-2 text-[13px]" style={{ color: "var(--ink-muted)" }}>
-                  <span style={{ color: "var(--teal)" }}>·</span>
-                  <span>{line}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-          <Link
-            href={`/catalog/${result.card.card_id}`}
-            className="mt-4 inline-block text-[13px]"
-            style={{ color: "var(--teal)" }}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            style={{ overflow: "hidden" }}
           >
-            Full terms →
-          </Link>
-        </div>
-      )}
+            <div className="border-t px-4 pb-4" style={{ borderColor: "var(--line)" }}>
+              {result.explanation && result.explanation.length > 0 && (
+                <ul className="space-y-1.5 pt-4">
+                  {result.explanation.map((line, i) => (
+                    <li key={i} className="flex gap-2 text-[13px]" style={{ color: "var(--ink-muted)" }}>
+                      <span style={{ color: "var(--teal)" }}>·</span>
+                      <span>{line}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <Link
+                href={`/catalog/${result.card.card_id}`}
+                className="mt-4 inline-block text-[13px]"
+                style={{ color: "var(--teal)" }}
+              >
+                Full terms →
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Card>
   );
 }

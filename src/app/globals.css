@@ -103,6 +103,53 @@ input[type="range"] {
   height: 20px;
 }
 
+/* PremiumSlider — gradient-fill track + wide grip-handle thumb. The fill
+   itself comes from an inline background gradient set per-render; this just
+   supplies the track/thumb geometry and the drag "pop". */
+.premium-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease;
+}
+.premium-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--surface, #fff);
+  background: var(--paper-raised);
+  border: 2.5px solid var(--teal);
+  box-shadow: var(--shadow-sm);
+  cursor: grab;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.premium-slider::-moz-range-thumb {
+  width: 14px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--paper-raised);
+  border: 2.5px solid var(--teal);
+  box-shadow: var(--shadow-sm);
+  cursor: grab;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.premium-slider.is-active::-webkit-slider-thumb {
+  transform: scaleX(1.35) scaleY(1.15);
+  cursor: grabbing;
+}
+.premium-slider.is-active::-moz-range-thumb {
+  transform: scaleX(1.35) scaleY(1.15);
+  cursor: grabbing;
+}
+.premium-slider.is-active {
+  box-shadow: 0 0 0 6px var(--teal-soft);
+}
+
 .numeric-input {
   background: transparent;
   border: none;

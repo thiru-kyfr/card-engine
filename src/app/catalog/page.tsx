@@ -48,7 +48,7 @@ export default function CatalogPage() {
           <Card key={c.card_id} className="h-full overflow-hidden">
             <Link href={`/catalog/${c.card_id}`} className="block no-underline">
               <div className="p-4 pb-0">
-                <CardVisual name={c.name} issuer={c.issuer} network={c.network.name} tier={c.tier} />
+                <CardVisual name={c.name} issuer={c.issuer} network={c.network.name} tier={c.tier} cardId={c.card_id} />
               </div>
               <div className="px-4 pt-3">
                 <div className="mb-1 flex flex-wrap items-center gap-1.5">

@@ -43,7 +43,7 @@ export default async function CardDetail({
       </p>
 
       <div className="mb-8 grid gap-6 sm:grid-cols-[minmax(0,240px)_1fr] sm:items-center">
-        <CardVisual name={card.name} issuer={card.issuer} network={card.network.name} tier={card.tier} />
+        <CardVisual name={card.name} issuer={card.issuer} network={card.network.name} tier={card.tier} cardId={card.card_id} />
         <div>
           <div className="mb-2 flex flex-wrap items-center gap-1.5">
             <Pill>{card.tier.replace("_", " ")}</Pill>

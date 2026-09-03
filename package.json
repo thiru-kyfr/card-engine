@@ -12,6 +12,7 @@
     "import:xlsx": "tsx scripts/import-xlsx.ts"
   },
   "dependencies": {
+    "framer-motion": "^13.2.0",
     "jszip": "^3.10.1",
     "next": "^15.5.25",
     "react": "19.1.0",

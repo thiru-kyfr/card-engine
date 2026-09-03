@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import type {
   Category,
   Merchant,
@@ -24,7 +25,14 @@ import {
   AmountPicker,
   StepProgress,
   Pill,
+  AnimatedNumber,
+  PremiumSlider,
+  CategoryPicker,
+  ScoreGauge,
 } from "./ui";
+
+const STEP_TRANSITION = { type: "spring" as const, stiffness: 300, damping: 32 };
+const SCORE_ORDER = ["building", "fair", "good", "excellent", "unsure"];
 
 const CATEGORY_ICON: Record<string, string> = {
   dining: "🍽️",
@@ -208,14 +216,32 @@ export function RecommendFlow({
           <span className="inline-block h-px w-4" style={{ background: "var(--teal)" }} />
           Step {step + 1} of 3
         </p>
-        <h1 className="text-3xl leading-tight">{STEPS[step]}</h1>
+        <AnimatePresence mode="wait">
+          <motion.h1
+            key={step}
+            className="text-3xl leading-tight"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={STEP_TRANSITION}
+          >
+            {STEPS[step]}
+          </motion.h1>
+        </AnimatePresence>
       </div>
 
       <StepProgress steps={STEPS} current={step} />
 
+      <AnimatePresence mode="wait">
       {/* ── STEP 1 — About you ── */}
       {step === 0 && (
-        <div className="space-y-4">
+        <motion.div
+          key="step-0"
+          initial={{ opacity: 0, x: 24 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -24 }}
+          transition={STEP_TRANSITION}
+          className="space-y-4">
           <Card className="p-6">
             <SectionTitle description="This decides which cards you're even eligible to apply for — nothing more, nothing hidden.">
               A little about you
@@ -237,15 +263,9 @@ export function RecommendFlow({
 
             <div className="mt-6">
               <Stepper label="Age" value={age} onChange={setAge} min={16} max={80} suffix="yrs" />
-              <input
-                type="range"
-                aria-label="Age slider"
-                min={16}
-                max={80}
-                value={age}
-                onChange={(e) => setAge(Number(e.target.value))}
-                className="mt-3"
-              />
+              <div className="mt-3">
+                <PremiumSlider ariaLabel="Age slider" min={16} max={80} step={1} value={age} onChange={setAge} />
+              </div>
             </div>
 
             <div className="mt-6">
@@ -265,22 +285,22 @@ export function RecommendFlow({
 
               <div className="mt-5 flex items-baseline gap-1.5">
                 <span className="font-mono-num text-[34px] font-semibold leading-none" style={{ color: "var(--ink)" }}>
-                  {formatInr(monthlyIncome)}
+                  <AnimatedNumber value={monthlyIncome} format={(n) => formatInr(Math.round(n / 500) * 500)} />
                 </span>
                 <span className="text-[13px]" style={{ color: "var(--ink-faint)" }}>
                   / month
                 </span>
               </div>
-              <input
-                type="range"
-                aria-label="Monthly income slider"
-                min={0}
-                max={500000}
-                step={5000}
-                value={monthlyIncome}
-                onChange={(e) => setMonthlyIncome(Number(e.target.value))}
-                className="mt-3"
-              />
+              <div className="mt-3">
+                <PremiumSlider
+                  ariaLabel="Monthly income slider"
+                  min={0}
+                  max={500000}
+                  step={5000}
+                  value={monthlyIncome}
+                  onChange={setMonthlyIncome}
+                />
+              </div>
               <p className="mt-1.5 text-[11.5px]" style={{ color: "var(--ink-faint)" }}>
                 ≈ {formatLakh(monthlyIncome * 12)} a year
               </p>
@@ -291,14 +311,12 @@ export function RecommendFlow({
             <SectionTitle description="This never filters out a card — it only shows how likely you are to be approved for each match. Skip it if you don't know.">
               Your credit score <span style={{ fontWeight: 400, color: "var(--ink-faint)" }}>(optional)</span>
             </SectionTitle>
-            <div className="flex flex-wrap gap-2">
-              {CREDIT_SCORE_OPTIONS.map((s) => (
-                <Chip key={s.id} selected={creditScore === s.id} onClick={() => setCreditScore(s.id)}>
-                  {s.label}
-                  <span style={{ color: "var(--ink-faint)" }}> · {s.hint}</span>
-                </Chip>
-              ))}
-            </div>
+            <ScoreGauge
+              options={CREDIT_SCORE_OPTIONS}
+              order={SCORE_ORDER}
+              value={creditScore}
+              onChange={(id) => setCreditScore(id as CreditScoreBucket)}
+            />
           </Card>
 
           <Callout tone="teal">
@@ -306,12 +324,19 @@ export function RecommendFlow({
             issuer&rsquo;s own assessment, so a recommended card can still be declined at
             application.
           </Callout>
-        </div>
+        </motion.div>
       )}
 
       {/* ── STEP 2 — Your spending ── */}
       {step === 1 && (
-        <div className="space-y-4">
+        <motion.div
+          key="step-1"
+          initial={{ opacity: 0, x: 24 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -24 }}
+          transition={STEP_TRANSITION}
+          className="space-y-4"
+        >
           <Card className="p-6">
             <SectionTitle description="Name your top three and roughly what you spend per month. These amounts are what drive the ranking — there is no separate weighting on top of them.">
               Your biggest spend categories
@@ -327,26 +352,13 @@ export function RecommendFlow({
                     >
                       {i + 1}
                     </span>
-                    <span className="text-[18px] leading-none" aria-hidden="true">
-                      {CATEGORY_ICON[slot.category_id] ?? CATEGORY_ICON_FALLBACK}
-                    </span>
-                    <select
-                      aria-label={`Category ${i + 1}`}
+                    <CategoryPicker
+                      ariaLabel={`Category ${i + 1}`}
+                      categories={categories}
                       value={slot.category_id}
-                      onChange={(e) => setSlot(i, { category_id: e.target.value })}
-                      className="min-w-[200px] flex-1 rounded-lg border px-3 py-2 text-[13.5px]"
-                      style={{
-                        background: "var(--paper-sunken)",
-                        borderColor: "var(--line-strong)",
-                        color: "var(--ink)",
-                      }}
-                    >
-                      {categories.map((c) => (
-                        <option key={c.category_id} value={c.category_id}>
-                          {CATEGORY_ICON[c.category_id] ?? CATEGORY_ICON_FALLBACK} {c.display_name}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(id) => setSlot(i, { category_id: id })}
+                      iconFor={(id) => CATEGORY_ICON[id] ?? CATEGORY_ICON_FALLBACK}
+                    />
                     {slots.length > 1 && (
                       <button
                         onClick={() => removeSlot(i)}
@@ -417,18 +429,27 @@ export function RecommendFlow({
             )}
             <p className="mt-5 border-t pt-4 text-[13px]" style={{ borderColor: "var(--line)" }}>
               Total monthly spend{" "}
-              <b className="font-mono-num">{formatInr(monthlyTotal)}</b>{" "}
+              <b className="font-mono-num">
+                <AnimatedNumber value={monthlyTotal} format={formatInr} />
+              </b>{" "}
               <span style={{ color: "var(--ink-faint)" }}>
                 · {formatLakh(monthlyTotal * 12)} a year
               </span>
             </p>
           </Card>
-        </div>
+        </motion.div>
       )}
 
       {/* ── STEP 3 — Preferences ── */}
       {step === 2 && (
-        <div className="space-y-4">
+        <motion.div
+          key="step-2"
+          initial={{ opacity: 0, x: 24 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -24 }}
+          transition={STEP_TRANSITION}
+          className="space-y-4"
+        >
           <Card className="p-6">
             <SectionTitle description="This picks which redemption rate each card is valued at — the same pile of points can be worth three times as much through one exit as another.">
               How do you want to be rewarded?
@@ -489,8 +510,9 @@ export function RecommendFlow({
           </Card>
 
           {error && <Callout tone="rose">{error}</Callout>}
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* nav */}
       <div className="mt-8 flex items-center justify-between gap-4">
