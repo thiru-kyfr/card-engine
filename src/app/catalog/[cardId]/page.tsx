@@ -1,16 +1,14 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { loadCatalog } from "@/catalog/load";
 import { formatInr, formatLakh, formatPoints } from "@/engine/format";
-import { Card, Callout, Pill, SectionTitle, CardVisual } from "@/components/ui";
+import { Card, Callout, Pill, SectionTitle, CardVisual, BackButton } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
 const CHANNEL_LABEL: Record<string, string> = {
   cashback: "Cashback",
-  voucher: "Vouchers",
-  portal: "Travel portal",
-  airmiles: "Airline miles",
+  voucher: "Points",
+  portal: "Airmiles",
   merchandise: "Merchandise",
 };
 
@@ -36,10 +34,8 @@ export default async function CardDetail({
 
   return (
     <div>
-      <p className="mb-4 text-[13px]">
-        <Link href="/catalog" style={{ color: "var(--teal)" }}>
-          ← Back to catalog
-        </Link>
+      <p className="mb-4">
+        <BackButton />
       </p>
 
       <div className="mb-8 grid gap-6 sm:grid-cols-[minmax(0,240px)_1fr] sm:items-center">
@@ -109,14 +105,19 @@ export default async function CardDetail({
       </div>
 
       <div className="mt-4">
-        <Card className="overflow-x-auto p-5">
+        <Card className="p-5">
           <SectionTitle>Accelerators</SectionTitle>
           {card.accelerators.length === 0 ? (
             <p className="text-[13.5px]" style={{ color: "var(--ink-muted)" }}>
               None — this card earns the base rate everywhere.
             </p>
           ) : (
-            <table className="w-full text-[12.5px]" style={{ borderCollapse: "collapse" }}>
+            <>
+              <p className="mb-2 text-[11.5px] sm:hidden" style={{ color: "var(--ink-faint)" }}>
+                Swipe to see all columns →
+              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-[12.5px]" style={{ borderCollapse: "collapse" }}>
               <thead>
                 <tr>
                   {["Category", "Rate", "How it stacks", "Spend cap", "Past the cap"].map((h) => (
@@ -163,7 +164,9 @@ export default async function CardDetail({
                   </tr>
                 ))}
               </tbody>
-            </table>
+                </table>
+              </div>
+            </>
           )}
         </Card>
       </div>

@@ -25,17 +25,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <header className="border-b hairline">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
-            <Link href="/" className="flex items-center gap-2 no-underline">
-              <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-4 sm:gap-4 sm:px-6">
+            <Link href="/" className="flex shrink-0 items-center gap-1.5 no-underline sm:gap-2">
+              <svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true" className="shrink-0">
                 <rect x="3" y="7" width="22" height="15" rx="3.5" fill="var(--teal)" />
                 <rect x="7" y="11" width="22" height="15" rx="3.5" fill="var(--ink)" />
               </svg>
-              <span style={{ color: "var(--ink)" }} className="font-serif text-lg font-semibold">
+              <span
+                style={{ color: "var(--ink)" }}
+                className="whitespace-nowrap font-serif text-[15px] font-semibold sm:text-lg"
+              >
                 Card Engine
               </span>
             </Link>
-            <nav className="flex items-center gap-1 text-[13px]">
+            <nav className="flex items-center gap-0.5 text-[12px] sm:gap-1 sm:text-[13px]">
               <NavLink href="/recommend">Find my card</NavLink>
               <NavLink href="/catalog">Compare cards</NavLink>
             </nav>
@@ -57,7 +60,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   return (
     <Link
       href={href}
-      className="rounded-full px-3 py-1.5 no-underline transition-colors hover:opacity-100"
+      className="whitespace-nowrap rounded-full px-2 py-1.5 no-underline transition-colors hover:opacity-100 sm:px-3"
       style={{ color: "var(--ink-muted)" }}
     >
       {children}

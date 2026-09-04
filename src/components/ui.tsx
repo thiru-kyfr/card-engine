@@ -1,7 +1,8 @@
 "use client";
 
 import type { ButtonHTMLAttributes, ReactNode } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useMotionValueEvent, useSpring } from "framer-motion";
 
 const SPRING = { type: "spring" as const, stiffness: 420, damping: 34 };
@@ -582,7 +583,7 @@ export function AmountPicker({
 }) {
   return (
     <div>
-      <div className="mb-3 flex flex-wrap gap-2">
+      <div className="mb-3 flex flex-wrap gap-1.5 sm:gap-2">
         {presets.map((p) => (
           <Chip key={p.label} selected={value === p.value} onClick={() => onChange(p.value)}>
             {p.label}
@@ -599,111 +600,6 @@ export function AmountPicker({
         prefix={prefix}
         helper={helper}
       />
-    </div>
-  );
-}
-
-/**
- * A category dropdown as an animated popover instead of a native <select> —
- * same underlying choice, but the open/close and the current pick both get
- * real motion instead of an instant browser-native swap.
- */
-export function CategoryPicker({
-  categories,
-  value,
-  onChange,
-  iconFor,
-  ariaLabel,
-}: {
-  categories: { category_id: string; display_name: string }[];
-  value: string;
-  onChange: (id: string) => void;
-  iconFor: (id: string) => ReactNode;
-  ariaLabel?: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function onDocPointer(e: PointerEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
-    }
-    document.addEventListener("pointerdown", onDocPointer);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("pointerdown", onDocPointer);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
-
-  const current = categories.find((c) => c.category_id === value);
-
-  return (
-    <div className="relative" ref={ref}>
-      <motion.button
-        type="button"
-        aria-label={ariaLabel}
-        aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
-        whileTap={{ scale: 0.98 }}
-        transition={SPRING}
-        className="flex min-w-[200px] flex-1 items-center gap-2 rounded-lg border px-3 py-2 text-[13.5px]"
-        style={{ background: "var(--paper-sunken)", borderColor: "var(--line-strong)", color: "var(--ink)" }}
-      >
-        <span aria-hidden="true" className="text-[16px] leading-none">
-          {iconFor(value)}
-        </span>
-        <span className="flex-1 truncate text-left">{current?.display_name ?? "Choose a category"}</span>
-        <motion.span
-          aria-hidden="true"
-          animate={{ rotate: open ? 180 : 0 }}
-          transition={SPRING}
-          style={{ color: "var(--ink-faint)" }}
-        >
-          ⌄
-        </motion.span>
-      </motion.button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -6, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.98 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute left-0 right-0 z-20 mt-1.5 max-h-72 overflow-y-auto rounded-xl border p-1.5"
-            style={{ background: "var(--paper-raised)", borderColor: "var(--line)", boxShadow: "var(--shadow-md)" }}
-          >
-            {categories.map((c) => {
-              const isSelected = c.category_id === value;
-              return (
-                <button
-                  key={c.category_id}
-                  type="button"
-                  onClick={() => {
-                    onChange(c.category_id);
-                    setOpen(false);
-                  }}
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[13.5px]"
-                  style={{
-                    background: isSelected ? "var(--teal-soft)" : "transparent",
-                    color: isSelected ? "var(--teal)" : "var(--ink)",
-                    fontWeight: isSelected ? 600 : 500,
-                  }}
-                >
-                  <span aria-hidden="true" className="text-[16px] leading-none">
-                    {iconFor(c.category_id)}
-                  </span>
-                  {c.display_name}
-                </button>
-              );
-            })}
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
@@ -797,7 +693,10 @@ export function ScoreGauge({
   const byId = new Map(options.map((o) => [o.id, o]));
   const ordered = order.map((id) => byId.get(id)!).filter(Boolean);
   return (
-    <div className="flex gap-1.5 rounded-2xl p-1.5" style={{ background: "var(--paper-sunken)" }}>
+    <div
+      className="grid grid-cols-3 gap-1.5 rounded-2xl p-1.5 sm:flex"
+      style={{ background: "var(--paper-sunken)" }}
+    >
       {ordered.map((o) => {
         const selected = o.id === value;
         return (
@@ -806,7 +705,7 @@ export function ScoreGauge({
             type="button"
             onClick={() => onChange(o.id)}
             aria-pressed={selected}
-            className="relative flex-1 rounded-xl px-2 py-2.5 text-center"
+            className="relative rounded-xl px-2 py-2.5 text-center sm:flex-1"
           >
             {selected && (
               <motion.div
@@ -832,6 +731,38 @@ export function ScoreGauge({
         );
       })}
     </div>
+  );
+}
+
+/**
+ * A real "back" — returns to whatever page the user actually came from
+ * (browser history), rather than a hardcoded destination. A Link to a fixed
+ * URL is wrong here: someone arriving at a card's detail page from search
+ * results should land back on those results, not always on the full catalog.
+ */
+export function BackButton({
+  fallbackHref = "/catalog",
+  label = "← Back",
+}: {
+  fallbackHref?: string;
+  label?: string;
+}) {
+  const router = useRouter();
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        if (typeof window !== "undefined" && window.history.length > 1) {
+          router.back();
+        } else {
+          router.push(fallbackHref);
+        }
+      }}
+      className="bg-transparent p-0 text-[13px]"
+      style={{ color: "var(--teal)", border: "none", cursor: "pointer", font: "inherit" }}
+    >
+      {label}
+    </button>
   );
 }
 

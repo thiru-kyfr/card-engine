@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type {
   Category,
@@ -27,7 +27,6 @@ import {
   Pill,
   AnimatedNumber,
   PremiumSlider,
-  CategoryPicker,
   ScoreGauge,
 } from "./ui";
 
@@ -55,9 +54,8 @@ const CATEGORY_ICON_FALLBACK = "💳";
 
 const CHANNELS: { id: RedemptionChannel; label: string; hint: string; icon: string }[] = [
   { id: "cashback", label: "Cashback", hint: "Statement credit, automatic", icon: "💰" },
-  { id: "voucher", label: "Vouchers", hint: "Gift cards and brand vouchers", icon: "🎁" },
-  { id: "portal", label: "Travel portal", hint: "Book through the issuer", icon: "🧳" },
-  { id: "airmiles", label: "Airline miles", hint: "Transfer to airline partners", icon: "🛫" },
+  { id: "voucher", label: "Points", hint: "Gift cards and brand vouchers", icon: "🎁" },
+  { id: "portal", label: "Airmiles", hint: "Book through the issuer's travel portal", icon: "🧳" },
 ];
 
 const EMPLOYMENTS: { id: EmploymentType; label: string; hint: string; icon: string }[] = [
@@ -99,9 +97,29 @@ const FEE_PRESETS = [
 ];
 
 const STEPS = ["About you", "Your spending", "Preferences"] as const;
-const SPENDING_STEP = 1;
+const MAX_CATEGORIES = 8;
 
 type SlotState = { category_id: string; monthly_inr: number };
+
+/** Tab-scoped only — never sent anywhere, cleared on "Start over" and when
+ * the tab closes. Exists purely so following a link out to a card's full
+ * terms and hitting the browser back button returns to these exact results
+ * instead of a reset wizard. */
+const STORAGE_KEY = "card-engine-recommend-state-v1";
+
+type PersistedState = {
+  step: number;
+  age: number;
+  employment: EmploymentType;
+  monthlyIncome: number;
+  creditScore: CreditScoreBucket;
+  slots: SlotState[];
+  residual: number;
+  channel: RedemptionChannel;
+  feeComfort: number;
+  pickedMerchants: string[];
+  result: RecommendationResult | null;
+};
 
 export function RecommendFlow({
   categories,
@@ -132,27 +150,79 @@ export function RecommendFlow({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Restore once on mount — e.g. after following "Full terms" out to a card
+  // detail page and hitting back — rather than resetting to a fresh wizard.
+  // `hydrated` (state, not a ref) is what gates the persist effect below: it
+  // only flips true in the SAME batched update as the restored values, so
+  // the persist effect never fires on a render that still has the old
+  // defaults in its closure — a ref flipped synchronously here would let it.
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw) as Partial<PersistedState>;
+        if (typeof saved.step === "number") setStep(saved.step);
+        if (typeof saved.age === "number") setAge(saved.age);
+        if (saved.employment) setEmployment(saved.employment);
+        if (typeof saved.monthlyIncome === "number") setMonthlyIncome(saved.monthlyIncome);
+        if (saved.creditScore) setCreditScore(saved.creditScore);
+        if (Array.isArray(saved.slots)) setSlots(saved.slots);
+        if (typeof saved.residual === "number") setResidual(saved.residual);
+        if (saved.channel) setChannel(saved.channel);
+        if (typeof saved.feeComfort === "number") setFeeComfort(saved.feeComfort);
+        if (Array.isArray(saved.pickedMerchants)) setPickedMerchants(saved.pickedMerchants);
+        if (saved.result) setResult(saved.result);
+      }
+    } catch {
+      // Corrupt or unavailable storage — just start fresh.
+    } finally {
+      setHydrated(true);
+    }
+  }, []);
+
+  // Persist on every change, after the restore above has had its turn.
+  useEffect(() => {
+    if (!hydrated) return;
+    const toSave: PersistedState = {
+      step,
+      age,
+      employment,
+      monthlyIncome,
+      creditScore,
+      slots,
+      residual,
+      channel,
+      feeComfort,
+      pickedMerchants,
+      result,
+    };
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    } catch {
+      // Storage full or unavailable (private browsing) — not worth failing over.
+    }
+  }, [hydrated, step, age, employment, monthlyIncome, creditScore, slots, residual, channel, feeComfort, pickedMerchants, result]);
+
   const monthlyTotal = slots.reduce((s, x) => s + x.monthly_inr, 0) + residual;
   const largestNamed = slots.reduce((m, s) => Math.max(m, s.monthly_inr), 0);
   const residualDominates = residual > largestNamed && residual > 0;
 
-  const duplicateCategory = useMemo(() => {
-    const ids = slots.map((s) => s.category_id);
-    return ids.length !== new Set(ids).size;
-  }, [slots]);
-
-  function setSlot(i: number, patch: Partial<SlotState>) {
-    setSlots((prev) => prev.map((s, idx) => (idx === i ? { ...s, ...patch } : s)));
+  // A chip toggle can't produce a duplicate category, so there's nothing left
+  // to validate here — selecting one is the only way to add it, and selecting
+  // it again removes it.
+  function toggleCategory(categoryId: string) {
+    setSlots((prev) => {
+      if (prev.some((s) => s.category_id === categoryId)) {
+        return prev.filter((s) => s.category_id !== categoryId);
+      }
+      if (prev.length >= MAX_CATEGORIES) return prev;
+      return [...prev, { category_id: categoryId, monthly_inr: 5000 }];
+    });
   }
 
-  function addSlot() {
-    const used = new Set(slots.map((s) => s.category_id));
-    const next = categories.find((c) => !used.has(c.category_id));
-    if (next) setSlots((prev) => [...prev, { category_id: next.category_id, monthly_inr: 5000 }]);
-  }
-
-  function removeSlot(i: number) {
-    setSlots((prev) => prev.filter((_, idx) => idx !== i));
+  function setCategoryAmount(categoryId: string, monthly_inr: number) {
+    setSlots((prev) => prev.map((s) => (s.category_id === categoryId ? { ...s, monthly_inr } : s)));
   }
 
   async function submit() {
@@ -199,6 +269,11 @@ export function RecommendFlow({
         result={result}
         creditScore={creditScore}
         onRestart={() => {
+          try {
+            sessionStorage.removeItem(STORAGE_KEY);
+          } catch {
+            // ignore
+          }
           setResult(null);
           setStep(0);
         }}
@@ -338,69 +413,63 @@ export function RecommendFlow({
           className="space-y-4"
         >
           <Card className="p-6">
-            <SectionTitle description="Name your top three and roughly what you spend per month. These amounts are what drive the ranking — there is no separate weighting on top of them.">
+            <SectionTitle description="Tap the categories you spend the most on, then tell us roughly how much per month. These amounts are what drive the ranking — there is no separate weighting on top of them.">
               Your biggest spend categories
             </SectionTitle>
 
-            <div className="space-y-6">
-              {slots.map((slot, i) => (
-                <div key={i}>
-                  <div className="mb-3 flex flex-wrap items-center gap-3">
-                    <span
-                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded font-mono-num text-[11px] font-semibold"
-                      style={{ background: "var(--teal-soft)", color: "var(--teal)" }}
-                    >
-                      {i + 1}
-                    </span>
-                    <CategoryPicker
-                      ariaLabel={`Category ${i + 1}`}
-                      categories={categories}
-                      value={slot.category_id}
-                      onChange={(id) => setSlot(i, { category_id: id })}
-                      iconFor={(id) => CATEGORY_ICON[id] ?? CATEGORY_ICON_FALLBACK}
-                    />
-                    {slots.length > 1 && (
-                      <button
-                        onClick={() => removeSlot(i)}
-                        aria-label={`Remove category ${i + 1}`}
-                        className="rounded px-2 py-1 text-[12px]"
-                        style={{ color: "var(--ink-faint)" }}
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                  <div className="pl-9">
-                    <AmountPicker
-                      label="Monthly spend"
-                      value={slot.monthly_inr}
-                      onChange={(n) => setSlot(i, { monthly_inr: n })}
-                      min={0}
-                      max={100000}
-                      step={1000}
-                      presets={SPEND_PRESETS}
-                    />
-                  </div>
-                </div>
-              ))}
+            <p className="mb-2 text-[11.5px] sm:hidden" style={{ color: "var(--ink-faint)" }}>
+              Swipe for more →
+            </p>
+            <div className="-mx-6 flex gap-2 overflow-x-auto px-6 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
+              {categories.map((c) => {
+                const selected = slots.some((s) => s.category_id === c.category_id);
+                return (
+                  <Chip
+                    key={c.category_id}
+                    selected={selected}
+                    onClick={() => toggleCategory(c.category_id)}
+                    className="shrink-0"
+                  >
+                    <span aria-hidden="true">{CATEGORY_ICON[c.category_id] ?? CATEGORY_ICON_FALLBACK}</span>{" "}
+                    {c.display_name}
+                  </Chip>
+                );
+              })}
             </div>
+            <p
+              className="mt-3 text-[12.5px]"
+              style={{ color: slots.length < 3 ? "var(--gold)" : "var(--ink-faint)" }}
+            >
+              {slots.length} of 3+ recommended selected
+              {slots.length >= MAX_CATEGORIES ? ` · up to ${MAX_CATEGORIES}` : ""}
+            </p>
 
-            {slots.length < 6 && (
-              <button
-                onClick={addSlot}
-                className="mt-5 rounded-lg border px-3 py-1.5 text-[13px]"
-                style={{ borderColor: "var(--line-strong)", color: "var(--ink-muted)" }}
-              >
-                + Add another category
-              </button>
-            )}
-
-            {duplicateCategory && (
-              <div className="mt-4">
-                <Callout tone="rose">
-                  <b>The same category is selected twice.</b> Each slot needs a different category,
-                  or its spend will be counted more than once.
-                </Callout>
+            {slots.length > 0 && (
+              <div className="mt-6 space-y-6 border-t pt-6" style={{ borderColor: "var(--line)" }}>
+                {slots.map((slot) => (
+                  <div key={slot.category_id}>
+                    <div className="mb-3 flex items-center gap-2">
+                      <span className="text-[16px] leading-none" aria-hidden="true">
+                        {CATEGORY_ICON[slot.category_id] ?? CATEGORY_ICON_FALLBACK}
+                      </span>
+                      <span className="text-[14px] font-semibold">
+                        {categories.find((c) => c.category_id === slot.category_id)?.display_name ??
+                          slot.category_id}
+                      </span>
+                    </div>
+                    <div className="pl-6">
+                      <AmountPicker
+                        label="Monthly spend"
+                        value={slot.monthly_inr}
+                        onChange={(n) => setCategoryAmount(slot.category_id, n)}
+                        min={0}
+                        max={100000}
+                        step={1000}
+                        presets={SPEND_PRESETS}
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </Card>
@@ -454,7 +523,7 @@ export function RecommendFlow({
             <SectionTitle description="This picks which redemption rate each card is valued at — the same pile of points can be worth three times as much through one exit as another.">
               How do you want to be rewarded?
             </SectionTitle>
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="grid gap-2 sm:grid-cols-3">
               {CHANNELS.map((c) => (
                 <IconTile
                   key={c.id}
@@ -525,11 +594,7 @@ export function RecommendFlow({
         </Button>
 
         {step < 2 ? (
-          <Button
-            onClick={() => setStep((s) => s + 1)}
-            disabled={step === SPENDING_STEP && duplicateCategory}
-            arrow
-          >
+          <Button onClick={() => setStep((s) => s + 1)} arrow>
             Continue
           </Button>
         ) : (

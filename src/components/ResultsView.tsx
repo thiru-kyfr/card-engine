@@ -41,9 +41,8 @@ function PlusMinus({ open }: { open: boolean }) {
 
 const CHANNEL_LABEL: Record<string, string> = {
   cashback: "Cashback",
-  voucher: "Vouchers",
-  portal: "Travel portal",
-  airmiles: "Airline miles",
+  voucher: "Points",
+  portal: "Airmiles",
   merchandise: "Merchandise",
 };
 
@@ -189,6 +188,33 @@ export function ResultsView({
   );
 }
 
+/** Up to 2 short, concrete reasons this card is worth it — picked from
+ * whichever of accelerator / waiver / milestone actually apply, in that
+ * priority order, so the callout never states something that isn't true
+ * for this specific result. */
+function highlightChips(result: CardResult): string[] {
+  const v = result.valuation;
+  if (!v) return [];
+  const chips: string[] = [];
+
+  const topAccelerator = [...v.categories]
+    .filter((c) => c.effective_multiplier > 1 && c.monthly_points > 0)
+    .sort((a, b) => b.effective_multiplier - a.effective_multiplier)[0];
+  if (topAccelerator) {
+    chips.push(`${topAccelerator.effective_multiplier}× on ${topAccelerator.display_name.toLowerCase()}`);
+  }
+
+  if (result.card.fee.annual > 0 && v.effective_fee_inr === 0) {
+    chips.push("Fee waived at your spend");
+  }
+
+  if (v.milestone_value_inr > 0) {
+    chips.push(`${formatInr(v.milestone_value_inr)} in milestone bonuses`);
+  }
+
+  return chips.slice(0, 2);
+}
+
 function FeaturedResult({
   result,
   isBest,
@@ -202,102 +228,149 @@ function FeaturedResult({
   const v = result.valuation;
   if (!v) return null;
   const odds = approvalOdds(result.card.tier, creditScore);
+  const chips = highlightChips(result);
 
   return (
-    <Card className="overflow-hidden p-6">
-      <div className="grid gap-6 sm:grid-cols-[minmax(0,220px)_1fr]">
-        <CardVisual
-          name={result.card.name}
-          issuer={result.card.issuer}
-          network={result.card.network.name}
-          tier={result.card.tier}
-          cardId={result.card.card_id}
-        />
-        <div className="flex flex-col justify-between">
-          <div>
-            <div className="mb-2 flex flex-wrap items-center gap-2">
-              {isBest ? (
-                <Pill tone="teal">best match</Pill>
-              ) : (
-                <span className="font-mono-num text-[11px]" style={{ color: "var(--ink-faint)" }}>
-                  #{result.rank}
-                </span>
-              )}
-              <Pill>{result.card.tier.replace("_", " ")}</Pill>
-              {result.tiebreak_applied && <Pill tone="gold">close call</Pill>}
-              {odds && <Pill tone={odds.tone}>{odds.label}</Pill>}
-            </div>
-            <h3 className="text-xl">{result.card.name}</h3>
-            <p className="mb-2 text-[12.5px]" style={{ color: "var(--ink-muted)" }}>
-              {result.card.issuer} · {result.card.network.name}
-              {result.card.network.tier ? ` ${result.card.network.tier}` : ""}
-            </p>
-            <div className="font-mono-num text-3xl font-semibold">
-              <AnimatedNumber value={v.nav_inr} format={formatInr} />
-            </div>
-            <div className="font-mono-num text-[11px]" style={{ color: "var(--ink-faint)" }}>
-              estimated value / year
-            </div>
-          </div>
+    <Card className="overflow-hidden p-0">
+      <div
+        className="flex items-center justify-between px-6 py-2.5 font-mono-num text-[11px] font-bold uppercase tracking-[0.1em]"
+        style={{
+          background: isBest ? "var(--lime)" : "var(--paper-sunken)",
+          color: isBest ? "var(--on-lime)" : "var(--ink-faint)",
+        }}
+      >
+        <span>{isBest ? "★ Best match" : `#${result.rank} match`}</span>
+        {result.tiebreak_applied && (
+          <span style={{ opacity: 0.8 }}>close call</span>
+        )}
+      </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Stat label="rewards/yr" value={formatInr(v.annual_rewards_inr)} tone="pos" />
-            {v.milestone_value_inr > 0 && (
-              <Stat label="milestones" value={formatInr(v.milestone_value_inr)} tone="pos" />
-            )}
-            {v.effective_fee_inr > 0 ? (
-              <Stat label="annual fee" value={`−${formatInr(v.effective_fee_inr)}`} tone="neg" />
-            ) : (
-              <Stat label="annual fee" value="waived" />
-            )}
-            {v.forex_cost_inr > 0 && (
-              <Stat label="forex charges" value={`−${formatInr(v.forex_cost_inr)}`} tone="neg" />
-            )}
-            <Stat label="points/mo" value={formatPoints(v.monthly_points)} />
+      <div className="p-6">
+        <div className="grid gap-6 sm:grid-cols-[minmax(0,220px)_1fr]">
+          <CardVisual
+            name={result.card.name}
+            issuer={result.card.issuer}
+            network={result.card.network.name}
+            tier={result.card.tier}
+            cardId={result.card.card_id}
+          />
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="mb-2">
+                <Pill>{result.card.tier.replace("_", " ")}</Pill>
+              </div>
+              <h3 className="text-xl">{result.card.name}</h3>
+              <p className="text-[12.5px]" style={{ color: "var(--ink-muted)" }}>
+                {result.card.issuer} · {result.card.network.name}
+                {result.card.network.tier ? ` ${result.card.network.tier}` : ""}
+              </p>
+            </div>
+
+            <div
+              className="shrink-0 rounded-2xl px-5 py-3.5 text-center"
+              style={{ background: "var(--paper-sunken)" }}
+            >
+              <div className="font-mono-num text-[26px] font-bold leading-none" style={{ color: "var(--teal)" }}>
+                <AnimatedNumber value={v.nav_inr} format={formatInr} />
+              </div>
+              <div
+                className="mt-1 font-mono-num text-[10px] uppercase tracking-[0.06em]"
+                style={{ color: "var(--ink-faint)" }}
+              >
+                est. value / yr
+              </div>
+              {odds && (
+                <div className="mt-2">
+                  <Pill tone={odds.tone}>{odds.label}</Pill>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {result.explanation && result.explanation.length > 0 && (
-        <ul className="mt-6 space-y-1.5 border-t pt-5" style={{ borderColor: "var(--line)" }}>
-          {result.explanation.map((line, i) => (
-            <li key={i} className="flex gap-2 text-[13.5px]" style={{ color: "var(--ink-muted)" }}>
-              <span style={{ color: "var(--teal)" }}>·</span>
-              <span>{line}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <div className="mt-5 flex flex-wrap items-center gap-4 border-t pt-4" style={{ borderColor: "var(--line)" }}>
-        <button
-          onClick={() => setOpen((o) => !o)}
-          aria-expanded={open}
-          className="flex items-center gap-2 text-[13px] font-medium"
-          style={{ color: "var(--ink-muted)" }}
-        >
-          <PlusMinus open={open} />
-          {open ? "Hide the full arithmetic" : "Show the full arithmetic"}
-        </button>
-        <Link href={`/catalog/${result.card.card_id}`} className="text-[13px]" style={{ color: "var(--teal)" }}>
-          Full terms →
-        </Link>
-      </div>
-
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.22, ease: "easeInOut" }}
-            style={{ overflow: "hidden" }}
-          >
-            <Breakdown result={result} />
-          </motion.div>
+        {result.explanation && result.explanation.length > 0 && (
+          <div className="mt-5">
+            <Callout tone="gold">
+              <p className="font-semibold" style={{ color: "var(--ink)" }}>
+                {result.explanation[0]}
+              </p>
+              {chips.length > 0 && (
+                <div className="mt-2.5 flex flex-wrap gap-2">
+                  {chips.map((c) => (
+                    <Pill key={c} tone="gold">
+                      {c}
+                    </Pill>
+                  ))}
+                </div>
+              )}
+            </Callout>
+          </div>
         )}
-      </AnimatePresence>
+
+        <div
+          className="mt-5 grid grid-cols-3 divide-x rounded-2xl text-center"
+          style={{ background: "var(--paper-sunken)", borderColor: "var(--line)" }}
+        >
+          <StatCell
+            label="annual fee"
+            value={v.effective_fee_inr > 0 ? formatInr(v.effective_fee_inr) : "Waived"}
+          />
+          <StatCell label="forex markup" value={`${result.card.forex_markup_pct}%`} />
+          <StatCell label="rewards/yr" value={formatInr(v.annual_rewards_inr)} />
+        </div>
+
+        {result.explanation && result.explanation.length > 1 && (
+          <div className="mt-5 border-t pt-5" style={{ borderColor: "var(--line)" }}>
+            <SectionLabel>Why it&rsquo;s worth it</SectionLabel>
+            <ul className="space-y-1.5">
+              {result.explanation.slice(1).map((line, i) => (
+                <li key={i} className="flex gap-2 text-[13.5px]" style={{ color: "var(--ink-muted)" }}>
+                  <span style={{ color: "var(--teal)" }}>✓</span>
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="mt-5 flex flex-wrap gap-3 border-t pt-5" style={{ borderColor: "var(--line)" }}>
+          <Button variant="primary" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+            {open ? "Hide full breakdown" : "See full breakdown"}
+          </Button>
+          <Link href={`/catalog/${result.card.card_id}`} className="btn btn-secondary no-underline">
+            Full terms
+          </Link>
+        </div>
+
+        <AnimatePresence initial={false}>
+          {open && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.22, ease: "easeInOut" }}
+              style={{ overflow: "hidden" }}
+            >
+              <Breakdown result={result} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </Card>
+  );
+}
+
+function StatCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="px-2 py-4">
+      <div className="font-mono-num text-[15.5px] font-bold">{value}</div>
+      <div
+        className="mt-1 font-mono-num text-[9.5px] uppercase tracking-[0.05em]"
+        style={{ color: "var(--ink-faint)" }}
+      >
+        {label}
+      </div>
+    </div>
   );
 }
 
@@ -379,6 +452,9 @@ function Breakdown({ result }: { result: CardResult }) {
   return (
     <div className="mt-5 border-t pt-5" style={{ borderColor: "var(--line)" }}>
       <SectionTitle>Points earned, per category, per month</SectionTitle>
+      <p className="mb-2 text-[11.5px] sm:hidden" style={{ color: "var(--ink-faint)" }}>
+        Swipe to see all columns →
+      </p>
       <div className="overflow-x-auto">
         <table className="w-full text-[12.5px]" style={{ borderCollapse: "collapse" }}>
           <thead>

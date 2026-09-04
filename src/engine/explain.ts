@@ -9,9 +9,8 @@ import { formatInr, formatPoints } from "./format";
 
 const CHANNEL_LABEL: Record<string, string> = {
   cashback: "cashback",
-  voucher: "vouchers",
-  portal: "the travel portal",
-  airmiles: "airline miles",
+  voucher: "points",
+  portal: "airmiles",
   merchandise: "the merchandise catalogue",
 };
 

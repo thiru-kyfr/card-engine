@@ -138,17 +138,6 @@
   mapping_confidence: high
   is_selectable_in_form: true
   form_display_order: 13
-- category_id: education
-  display_name: Education
-  parent_category: essential
-  mcc_codes:
-    - "8211"
-    - "8220"
-    - "8299"
-  mapping_confidence: high
-  is_selectable_in_form: true
-  form_display_order: 14
-  notes: Often routed through third-party payment apps that strip the MCC.
 - category_id: fuel
   display_name: Fuel
   parent_category: essential
@@ -161,41 +150,6 @@
   commonly_excluded: true
   notes: Almost universally excluded — carries a surcharge waiver instead of
     reward earning.
-- category_id: rent
-  display_name: Rent payments
-  parent_category: essential
-  mcc_codes:
-    - "6513"
-  mapping_confidence: high
-  is_selectable_in_form: true
-  form_display_order: 16
-  commonly_excluded: true
-  notes: Excluded on nearly every card. Rent-payment apps are the classic
-    reward-farming vector.
-- category_id: wallet_load
-  display_name: Wallet loads & gift cards
-  parent_category: other
-  mcc_codes:
-    - "6540"
-    - "6051"
-  mapping_confidence: high
-  is_selectable_in_form: true
-  form_display_order: 17
-  commonly_excluded: true
-  notes: Quasi-cash. Excluded everywhere, and often triggers a cash-advance fee.
-- category_id: government
-  display_name: Government & tax payments
-  parent_category: other
-  mcc_codes:
-    - "9211"
-    - "9222"
-    - "9311"
-    - "9399"
-  mapping_confidence: high
-  is_selectable_in_form: true
-  form_display_order: 18
-  commonly_excluded: true
-  notes: Zero or negative interchange — nothing to fund rewards from.
 - category_id: insurance
   display_name: Insurance premiums
   parent_category: essential

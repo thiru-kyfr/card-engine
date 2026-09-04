@@ -249,6 +249,13 @@ a[href] { text-decoration-thickness: 1px; text-underline-offset: 2px; }
   font-size: 13.5px;
   font-weight: 600;
 }
+@media (max-width: 639px) {
+  .chip {
+    padding: 0.45rem 0.85rem;
+    font-size: 12px;
+    gap: 0.3rem;
+  }
+}
 .chip:hover:not(:disabled) { border-color: var(--teal); color: var(--teal); }
 .chip[aria-pressed="true"] {
   background: var(--ink);
