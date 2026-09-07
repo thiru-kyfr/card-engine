@@ -69,7 +69,8 @@ const MONTHLY_INCOME_PRESETS = [
   { label: "₹25–50K", value: 37500 },
   { label: "₹50K–1L", value: 75000 },
   { label: "₹1–2L", value: 150000 },
-  { label: "₹2L+", value: 250000 },
+  { label: "₹2–5L", value: 350000 },
+  { label: "₹5L+", value: 700000 },
 ];
 
 const SPEND_PRESETS = [
@@ -225,6 +226,13 @@ export function RecommendFlow({
     setSlots((prev) => prev.map((s) => (s.category_id === categoryId ? { ...s, monthly_inr } : s)));
   }
 
+  /** Every step change lands the user at the top of the new step — never
+   * wherever they happened to have scrolled to on the step they're leaving. */
+  function goToStep(next: number) {
+    setStep(next);
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
+  }
+
   async function submit() {
     setLoading(true);
     setError(null);
@@ -283,9 +291,9 @@ export function RecommendFlow({
 
   return (
     <div>
-      <div className="mb-8">
+      <div className="mb-4">
         <p
-          className="mb-2 flex items-center gap-2 font-mono-num text-[11px] uppercase tracking-[0.11em]"
+          className="mb-1 flex items-center gap-2 font-mono-num text-[10.5px] uppercase tracking-[0.11em]"
           style={{ color: "var(--teal)" }}
         >
           <span className="inline-block h-px w-4" style={{ background: "var(--teal)" }} />
@@ -294,7 +302,7 @@ export function RecommendFlow({
         <AnimatePresence mode="wait">
           <motion.h1
             key={step}
-            className="text-3xl leading-tight"
+            className="text-2xl leading-tight"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
@@ -370,7 +378,7 @@ export function RecommendFlow({
                 <PremiumSlider
                   ariaLabel="Monthly income slider"
                   min={0}
-                  max={500000}
+                  max={1000000}
                   step={5000}
                   value={monthlyIncome}
                   onChange={setMonthlyIncome}
@@ -587,14 +595,14 @@ export function RecommendFlow({
       <div className="mt-8 flex items-center justify-between gap-4">
         <Button
           variant="ghost"
-          onClick={() => setStep((s) => Math.max(0, s - 1))}
+          onClick={() => goToStep(Math.max(0, step - 1))}
           disabled={step === 0}
         >
           Back
         </Button>
 
         {step < 2 ? (
-          <Button onClick={() => setStep((s) => s + 1)} arrow>
+          <Button onClick={() => goToStep(step + 1)} arrow>
             Continue
           </Button>
         ) : (

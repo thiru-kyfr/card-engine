@@ -610,12 +610,12 @@ export function AmountPicker({
  */
 export function StepProgress({ steps, current }: { steps: readonly string[]; current: number }) {
   return (
-    <div className="mb-8 flex items-start">
+    <div className="mb-5 flex items-start">
       {steps.map((s, i) => (
         <div key={s} className={`flex items-center ${i < steps.length - 1 ? "flex-1" : ""}`}>
-          <div className="flex flex-col items-center gap-1.5">
+          <div className="flex flex-col items-center gap-1">
             <motion.div
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-mono-num text-[13px] font-semibold"
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-mono-num text-[11px] font-semibold"
               initial={false}
               animate={
                 i < current
@@ -640,7 +640,7 @@ export function StepProgress({ steps, current }: { steps: readonly string[]; cur
               </AnimatePresence>
             </motion.div>
             <span
-              className="max-w-[5.5rem] text-center text-[11px] leading-tight"
+              className="max-w-[5.5rem] text-center text-[10px] leading-tight"
               style={{ color: i <= current ? "var(--ink-muted)" : "var(--ink-faint)" }}
             >
               {s}
@@ -649,7 +649,7 @@ export function StepProgress({ steps, current }: { steps: readonly string[]; cur
           {i < steps.length - 1 && (
             <div
               className="relative mx-2 h-px flex-1 self-start overflow-hidden"
-              style={{ marginTop: "15px", background: "var(--line)" }}
+              style={{ marginTop: "11px", background: "var(--line)" }}
             >
               <motion.div
                 className="absolute inset-y-0 left-0"
