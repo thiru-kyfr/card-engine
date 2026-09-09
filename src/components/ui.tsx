@@ -3,6 +3,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { AnimatePresence, motion, useMotionValueEvent, useSpring } from "framer-motion";
 import { Check } from "lucide-react";
 
@@ -283,6 +284,22 @@ function hashHue(seed: string): number {
   return (h % 13) - 6; // -6..6 degrees
 }
 
+/** Real card art, supplied by the design team, for the issuers it covers.
+ * Everything else falls back to the tier-gradient treatment above — there's
+ * no art asset for every issuer in the catalog, and a missing one should
+ * degrade gracefully rather than show a broken image. */
+const ISSUER_ART: Record<string, string> = {
+  "Axis Bank": "/card-art/axis.png",
+  "HDFC Bank": "/card-art/hdfc.png",
+  "SBI Card": "/card-art/sbi.png",
+  "ICICI Bank": "/card-art/icici.png",
+  "IDFC FIRST Bank": "/card-art/idfc-first.png",
+  BOBCARD: "/card-art/bank-of-baroda.png",
+  "YES Bank": "/card-art/yes-bank.png",
+  "Kotak Mahindra Bank": "/card-art/kotak.png",
+  "IndusInd Bank": "/card-art/indusind.png",
+};
+
 export function CardVisual({
   name,
   issuer,
@@ -300,39 +317,58 @@ export function CardVisual({
 }) {
   const hue = cardId ? hashHue(cardId) : 0;
   const glow = TIER_GLOW[tier] ?? TIER_GLOW.entry;
+  const art = ISSUER_ART[issuer];
+
   return (
     <div
       className={`relative aspect-[1.586/1] w-full overflow-hidden rounded-2xl p-5 ${className}`}
       style={{
-        background: TIER_GRADIENT[tier] ?? TIER_GRADIENT.entry,
+        background: art ? "#0a0410" : TIER_GRADIENT[tier] ?? TIER_GRADIENT.entry,
         color: "#fff",
-        filter: `hue-rotate(${hue}deg) saturate(1.2)`,
-        boxShadow: `0 24px 44px -22px ${glow}`,
+        filter: art ? undefined : `hue-rotate(${hue}deg) saturate(1.2)`,
+        boxShadow: art ? "0 24px 44px -22px rgba(0,0,0,0.55)" : `0 24px 44px -22px ${glow}`,
       }}
     >
-      {/* corner highlight */}
-      <div
-        className="absolute inset-0 opacity-50"
-        style={{
-          background: "radial-gradient(circle at 85% 12%, rgba(255,255,255,0.4), transparent 45%)",
-        }}
-      />
-      {/* diagonal metallic sheen */}
-      <div
-        className="absolute inset-0 opacity-40"
-        style={{
-          background:
-            "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.4) 48%, transparent 62%)",
-        }}
-      />
-      {/* subtle texture so flat tiers don't read as a plain fill */}
-      <div
-        className="absolute inset-0 opacity-[0.15] mix-blend-overlay"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(115deg, rgba(255,255,255,0.5) 0px, transparent 1.5px, transparent 6px)",
-        }}
-      />
+      {art ? (
+        <>
+          <Image src={art} alt="" fill sizes="320px" className="object-cover" priority={false} />
+          {/* scrim so the issuer/network/name text stays legible over any
+           * photo art, regardless of how bright that particular design is */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.02) 32%, rgba(0,0,0,0.02) 58%, rgba(0,0,0,0.55) 100%)",
+            }}
+          />
+        </>
+      ) : (
+        <>
+          {/* corner highlight */}
+          <div
+            className="absolute inset-0 opacity-50"
+            style={{
+              background: "radial-gradient(circle at 85% 12%, rgba(255,255,255,0.4), transparent 45%)",
+            }}
+          />
+          {/* diagonal metallic sheen */}
+          <div
+            className="absolute inset-0 opacity-40"
+            style={{
+              background:
+                "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.4) 48%, transparent 62%)",
+            }}
+          />
+          {/* subtle texture so flat tiers don't read as a plain fill */}
+          <div
+            className="absolute inset-0 opacity-[0.15] mix-blend-overlay"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(115deg, rgba(255,255,255,0.5) 0px, transparent 1.5px, transparent 6px)",
+            }}
+          />
+        </>
+      )}
       <div className="relative flex h-full flex-col justify-between">
         <div className="flex items-start justify-between">
           <span className="text-[11px] uppercase tracking-[0.08em] opacity-80">{issuer}</span>
