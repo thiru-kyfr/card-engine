@@ -124,6 +124,10 @@ const FEE_PRESETS = [
 
 const STEPS = ["About you", "Your spending", "Preferences"] as const;
 const MAX_CATEGORIES = 8;
+/** Categories are ordered by how commonly they're a top spend, so the first
+ * handful covers most people. The rest stay one tap away rather than making
+ * everyone scan 17 options to find "dining". */
+const PRIMARY_CATEGORY_COUNT = 8;
 
 type SlotState = { category_id: string; monthly_inr: number };
 
@@ -229,6 +233,18 @@ export function RecommendFlow({
       // Storage full or unavailable (private browsing) — not worth failing over.
     }
   }, [hydrated, step, age, employment, monthlyIncome, creditScore, slots, residual, channel, feeComfort, pickedMerchants, result]);
+
+  const [showAllCategories, setShowAllCategories] = useState(false);
+
+  const atCategoryLimit = slots.length >= MAX_CATEGORIES;
+  // A category the user has already picked is always shown, even when it sits
+  // in the collapsed tail — otherwise collapsing would hide their own answer.
+  const visibleCategories = showAllCategories
+    ? categories
+    : categories.filter(
+        (c, i) => i < PRIMARY_CATEGORY_COUNT || slots.some((s) => s.category_id === c.category_id),
+      );
+  const hiddenCategoryCount = categories.length - visibleCategories.length;
 
   const monthlyTotal = slots.reduce((s, x) => s + x.monthly_inr, 0) + residual;
   const largestNamed = slots.reduce((m, s) => Math.max(m, s.monthly_inr), 0);
@@ -453,19 +469,19 @@ export function RecommendFlow({
               Your biggest spend categories
             </SectionTitle>
 
-            <p className="mb-2 text-[11.5px] sm:hidden" style={{ color: "var(--ink-faint)" }}>
-              Swipe for more →
-            </p>
-            <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
-              {categories.map((c) => {
+            {/* Wrapped, not a horizontal strip. With 17 options the strip hid
+                the choices and — worse — the user's own selections, so the
+                count could read "4 selected" beside two visible gold chips. */}
+            <div className="flex flex-wrap gap-2">
+              {visibleCategories.map((c) => {
                 const selected = slots.some((s) => s.category_id === c.category_id);
                 const Icon = CATEGORY_ICON[c.category_id] ?? CATEGORY_ICON_FALLBACK;
                 return (
                   <Chip
                     key={c.category_id}
                     selected={selected}
+                    disabled={!selected && atCategoryLimit}
                     onClick={() => toggleCategory(c.category_id)}
-                    className="shrink-0"
                   >
                     <Icon size={14} strokeWidth={1.75} aria-hidden="true" />
                     {c.display_name}
@@ -473,12 +489,27 @@ export function RecommendFlow({
                 );
               })}
             </div>
+
+            {hiddenCategoryCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowAllCategories(true)}
+                className="mt-3 text-[12.5px] font-medium"
+                style={{ color: "var(--teal)", background: "none", border: 0, padding: 0 }}
+              >
+                Show {hiddenCategoryCount} more
+              </button>
+            )}
+
             <p
               className="mt-3 text-[12.5px]"
               style={{ color: slots.length < 3 ? "var(--gold)" : "var(--ink-faint)" }}
             >
-              {slots.length} of 3+ recommended selected
-              {slots.length >= MAX_CATEGORIES ? ` · up to ${MAX_CATEGORIES}` : ""}
+              {slots.length < 3
+                ? `Pick at least 3 for an accurate match — you have ${slots.length}`
+                : atCategoryLimit
+                  ? `${slots.length} selected — that's the maximum`
+                  : `${slots.length} selected`}
             </p>
 
             {slots.length > 0 && (

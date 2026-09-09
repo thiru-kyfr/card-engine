@@ -306,6 +306,9 @@ a[href] { text-decoration-thickness: 1px; text-underline-offset: 2px; }
   }
 }
 .chip:hover:not(:disabled) { border-color: var(--teal); color: var(--ink); }
+/* At the selection cap the remaining chips stop being choices; dimming them
+   is how the limit explains itself, instead of taps silently doing nothing. */
+.chip:disabled { opacity: 0.35; cursor: default; }
 .chip[aria-pressed="true"] {
   background: var(--gold-soft);
   color: var(--gold);

@@ -239,18 +239,21 @@ export function Chip({
   selected,
   onClick,
   className = "",
+  disabled = false,
 }: {
   children: ReactNode;
   selected: boolean;
   onClick: () => void;
   className?: string;
+  disabled?: boolean;
 }) {
   return (
     <motion.button
       type="button"
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
       aria-pressed={selected}
-      whileTap={{ scale: 0.94 }}
+      whileTap={disabled ? undefined : { scale: 0.94 }}
       animate={selected ? { scale: [1, 1.05, 1] } : { scale: 1 }}
       transition={selected ? { duration: 0.28, ease: "easeOut" } : SPRING}
       className={`chip ${className}`}
