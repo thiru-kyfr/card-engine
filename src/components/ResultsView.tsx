@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Sparkle, Check } from "lucide-react";
+import { Sparkle, Check, ChevronDown } from "lucide-react";
 import type { CardResult, RecommendationResult } from "@/engine/types";
 import { formatInr, formatPoints } from "@/engine/format";
 import {
@@ -340,6 +340,17 @@ function FeaturedResult({
         <div className="mt-5 flex flex-wrap gap-3 border-t pt-5" style={{ borderColor: "var(--line)" }}>
           <Button variant="primary" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
             {open ? "Hide full breakdown" : "See full breakdown"}
+            {/* Points down when collapsed, flips up when open — so the button
+                says which way it will move the content, not just that it is
+                a button. */}
+            <motion.span
+              aria-hidden="true"
+              className="inline-flex"
+              animate={{ rotate: open ? 180 : 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 26 }}
+            >
+              <ChevronDown size={16} strokeWidth={2} />
+            </motion.span>
           </Button>
           <Link href={`/catalog/${result.card.card_id}`} className="btn btn-secondary no-underline">
             Full terms
