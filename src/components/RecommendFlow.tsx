@@ -2,6 +2,29 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import {
+  UtensilsCrossed,
+  ShoppingCart,
+  ShoppingBag,
+  Plane,
+  BedDouble,
+  Car,
+  Clapperboard,
+  Shirt,
+  Laptop,
+  Store,
+  Lightbulb,
+  Smartphone,
+  Stethoscope,
+  GraduationCap,
+  Globe,
+  CreditCard,
+  Wallet,
+  Gift,
+  Briefcase,
+  Rocket,
+  type LucideIcon,
+} from "lucide-react";
 import type {
   Category,
   Merchant,
@@ -33,35 +56,37 @@ import {
 const STEP_TRANSITION = { type: "spring" as const, stiffness: 300, damping: 32 };
 const SCORE_ORDER = ["building", "fair", "good", "excellent", "unsure"];
 
-const CATEGORY_ICON: Record<string, string> = {
-  dining: "🍽️",
-  groceries: "🛒",
-  online_shopping: "🛍️",
-  travel_air: "✈️",
-  travel_hotel: "🏨",
-  cabs_transit: "🚕",
-  entertainment: "🎬",
-  apparel: "👗",
-  electronics: "💻",
-  departmental: "🏬",
-  utilities: "💡",
-  telecom: "📱",
-  healthcare: "💊",
-  education: "🎓",
-  international: "🌍",
+/* KYFR's iconography rule is explicit: no emoji, ever — thin line icons in
+ * a violet chip instead (see design system README § Iconography). */
+const CATEGORY_ICON: Record<string, LucideIcon> = {
+  dining: UtensilsCrossed,
+  groceries: ShoppingCart,
+  online_shopping: ShoppingBag,
+  travel_air: Plane,
+  travel_hotel: BedDouble,
+  cabs_transit: Car,
+  entertainment: Clapperboard,
+  apparel: Shirt,
+  electronics: Laptop,
+  departmental: Store,
+  utilities: Lightbulb,
+  telecom: Smartphone,
+  healthcare: Stethoscope,
+  education: GraduationCap,
+  international: Globe,
 };
-const CATEGORY_ICON_FALLBACK = "💳";
+const CATEGORY_ICON_FALLBACK = CreditCard;
 
-const CHANNELS: { id: RedemptionChannel; label: string; hint: string; icon: string }[] = [
-  { id: "cashback", label: "Cashback", hint: "Statement credit, automatic", icon: "💰" },
-  { id: "voucher", label: "Points", hint: "Gift cards and brand vouchers", icon: "🎁" },
-  { id: "portal", label: "Airmiles", hint: "Book through the issuer's travel portal", icon: "🧳" },
+const CHANNELS: { id: RedemptionChannel; label: string; hint: string; icon: LucideIcon }[] = [
+  { id: "cashback", label: "Cashback", hint: "Statement credit, automatic", icon: Wallet },
+  { id: "voucher", label: "Points", hint: "Gift cards and brand vouchers", icon: Gift },
+  { id: "portal", label: "Airmiles", hint: "Book through the issuer's travel portal", icon: Plane },
 ];
 
-const EMPLOYMENTS: { id: EmploymentType; label: string; hint: string; icon: string }[] = [
-  { id: "salaried", label: "Salaried", hint: "A regular monthly paycheck", icon: "💼" },
-  { id: "self_employed", label: "Self-employed", hint: "Freelance, business or practice", icon: "🧑‍💻" },
-  { id: "student", label: "Student", hint: "Still studying", icon: "🎓" },
+const EMPLOYMENTS: { id: EmploymentType; label: string; hint: string; icon: LucideIcon }[] = [
+  { id: "salaried", label: "Salaried", hint: "A regular monthly paycheck", icon: Briefcase },
+  { id: "self_employed", label: "Self-employed", hint: "Freelance, business or practice", icon: Rocket },
+  { id: "student", label: "Student", hint: "Still studying", icon: GraduationCap },
 ];
 
 const MONTHLY_INCOME_PRESETS = [
@@ -335,7 +360,7 @@ export function RecommendFlow({
               {EMPLOYMENTS.map((e) => (
                 <IconTile
                   key={e.id}
-                  icon={e.icon}
+                  icon={<e.icon size={20} strokeWidth={1.6} aria-hidden="true" />}
                   label={e.label}
                   hint={e.hint}
                   selected={employment === e.id}
@@ -367,7 +392,7 @@ export function RecommendFlow({
               </div>
 
               <div className="mt-5 flex items-baseline gap-1.5">
-                <span className="font-mono-num text-[34px] font-semibold leading-none" style={{ color: "var(--ink)" }}>
+                <span className="font-mono-num text-[34px] font-light leading-none" style={{ color: "var(--ink)" }}>
                   <AnimatedNumber value={monthlyIncome} format={(n) => formatInr(Math.round(n / 500) * 500)} />
                 </span>
                 <span className="text-[13px]" style={{ color: "var(--ink-faint)" }}>
@@ -431,6 +456,7 @@ export function RecommendFlow({
             <div className="-mx-6 flex gap-2 overflow-x-auto px-6 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
               {categories.map((c) => {
                 const selected = slots.some((s) => s.category_id === c.category_id);
+                const Icon = CATEGORY_ICON[c.category_id] ?? CATEGORY_ICON_FALLBACK;
                 return (
                   <Chip
                     key={c.category_id}
@@ -438,7 +464,7 @@ export function RecommendFlow({
                     onClick={() => toggleCategory(c.category_id)}
                     className="shrink-0"
                   >
-                    <span aria-hidden="true">{CATEGORY_ICON[c.category_id] ?? CATEGORY_ICON_FALLBACK}</span>{" "}
+                    <Icon size={14} strokeWidth={1.75} aria-hidden="true" />
                     {c.display_name}
                   </Chip>
                 );
@@ -454,13 +480,13 @@ export function RecommendFlow({
 
             {slots.length > 0 && (
               <div className="mt-6 space-y-6 border-t pt-6" style={{ borderColor: "var(--line)" }}>
-                {slots.map((slot) => (
+                {slots.map((slot) => {
+                  const Icon = CATEGORY_ICON[slot.category_id] ?? CATEGORY_ICON_FALLBACK;
+                  return (
                   <div key={slot.category_id}>
                     <div className="mb-3 flex items-center gap-2">
-                      <span className="text-[16px] leading-none" aria-hidden="true">
-                        {CATEGORY_ICON[slot.category_id] ?? CATEGORY_ICON_FALLBACK}
-                      </span>
-                      <span className="text-[14px] font-semibold">
+                      <Icon size={16} strokeWidth={1.75} aria-hidden="true" style={{ color: "var(--teal)" }} />
+                      <span className="text-[14px] font-normal">
                         {categories.find((c) => c.category_id === slot.category_id)?.display_name ??
                           slot.category_id}
                       </span>
@@ -477,7 +503,8 @@ export function RecommendFlow({
                       />
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </Card>
@@ -535,7 +562,7 @@ export function RecommendFlow({
               {CHANNELS.map((c) => (
                 <IconTile
                   key={c.id}
-                  icon={c.icon}
+                  icon={<c.icon size={20} strokeWidth={1.6} aria-hidden="true" />}
                   label={c.label}
                   hint={c.hint}
                   selected={channel === c.id}

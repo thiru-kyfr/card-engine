@@ -4,6 +4,7 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useMotionValueEvent, useSpring } from "framer-motion";
+import { Check } from "lucide-react";
 
 const SPRING = { type: "spring" as const, stiffness: 420, damping: 34 };
 const SOFT_SPRING = { type: "spring" as const, stiffness: 260, damping: 24 };
@@ -87,10 +88,10 @@ export function Card({
         ? "var(--rose)"
         : accent === "gold"
           ? "var(--gold)"
-          : "var(--line)";
+          : "transparent";
   return (
     <div
-      className={`rounded-2xl border ${className}`}
+      className={`glass rounded-2xl border ${className}`}
       style={{
         background: "var(--paper-raised)",
         borderColor: border,
@@ -127,7 +128,7 @@ export function SectionTitle({
 }) {
   return (
     <div className="mb-5">
-      <h2 className="text-[18px] font-semibold leading-snug" style={{ color: "var(--ink)" }}>
+      <h2 className="text-[18px] font-normal leading-snug" style={{ color: "var(--ink)" }}>
         {children}
       </h2>
       {description && (
@@ -255,26 +256,31 @@ export function Chip({
   );
 }
 
+/** The four card tiers map onto KYFR's own brand-spectrum stops, in the same
+ * order the logo gradient uses them (violet → pink → magenta → amber) — so
+ * "higher tier" reads as "further along the brand gradient," not an
+ * unrelated color choice. */
 const TIER_GRADIENT: Record<string, string> = {
-  entry: "linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%)",
-  mid: "linear-gradient(135deg, #8b7bff 0%, #2f24fa 100%)",
-  premium: "linear-gradient(135deg, #e356e8 0%, #6b21a8 100%)",
-  super_premium: "linear-gradient(135deg, #f0cf72 0%, #6b4a12 55%, #2a1f0a 100%)",
+  entry: "var(--tile-violet)",
+  mid: "var(--tile-pink)",
+  premium: "var(--tile-magenta)",
+  super_premium: "var(--tile-amber)",
 };
 
 const TIER_GLOW: Record<string, string> = {
-  entry: "rgba(45, 212, 191, 0.35)",
-  mid: "rgba(118, 110, 251, 0.4)",
-  premium: "rgba(227, 86, 232, 0.35)",
-  super_premium: "rgba(240, 207, 114, 0.35)",
+  entry: "rgba(128, 72, 240, 0.4)",
+  mid: "rgba(255, 107, 161, 0.35)",
+  premium: "rgba(249, 125, 214, 0.35)",
+  super_premium: "rgba(255, 195, 102, 0.35)",
 };
 
-/** Deterministic hash so the same card always renders the same hue shift —
- * gives cards within a tier real variety instead of looking identical. */
+/** Deterministic hash so the same card always renders the same subtle hue
+ * shift — enough variety within a tier without drifting off the brand hue
+ * (KYFR reserves the spectrum for rare emphasis, so the range stays tight). */
 function hashHue(seed: string): number {
   let h = 0;
   for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-  return (h % 41) - 20; // -20..20 degrees
+  return (h % 13) - 6; // -6..6 degrees
 }
 
 export function CardVisual({
@@ -386,7 +392,7 @@ export function RangeField({
       <div className="mb-2 flex items-center justify-between gap-3">
         <FieldLabel>{label}</FieldLabel>
         <div
-          className="flex items-center gap-1 font-mono-num text-[15px] font-semibold"
+          className="flex items-center gap-1 font-mono-num text-[15px] font-normal"
           style={{ color: "var(--ink)" }}
         >
           {prefix && <span aria-hidden="true">{prefix}</span>}
@@ -453,34 +459,30 @@ export function IconTile({
       aria-pressed={selected}
       whileTap={{ scale: 0.95 }}
       animate={{
-        backgroundColor: selected ? "var(--teal)" : "var(--paper-raised)",
-        borderColor: selected ? "var(--teal)" : "transparent",
+        backgroundColor: selected ? "var(--gold-soft)" : "var(--paper-raised)",
+        borderColor: selected ? "var(--gold)" : "transparent",
         scale: selected ? 1 : 1,
       }}
       initial={false}
       transition={SOFT_SPRING}
-      className="rounded-2xl border-2 p-4 text-left"
+      className="glass rounded-2xl border-2 p-4 text-left"
     >
-      <motion.div
-        className="mb-1.5 text-[22px] leading-none"
-        animate={{
-          color: selected ? "var(--on-teal)" : "var(--teal)",
-          scale: selected ? [1, 1.25, 1] : 1,
-        }}
-        transition={{ color: SPRING, scale: selected ? { duration: 0.32, ease: "easeOut" } : SPRING }}
+      <div
+        className="icon-chip mb-2 h-11 w-11"
+        style={{ background: selected ? "transparent" : "var(--violet-deepbg)", color: selected ? "var(--gold)" : "var(--teal)" }}
       >
         {icon}
-      </motion.div>
+      </div>
       <div
-        className="text-[14px] font-semibold"
-        style={{ color: selected ? "var(--on-teal)" : "var(--ink)" }}
+        className="text-[14px] font-normal"
+        style={{ color: selected ? "var(--gold)" : "var(--ink)" }}
       >
         {label}
       </div>
       {hint && (
         <div
           className="mt-0.5 text-[12px]"
-          style={{ color: selected ? "var(--on-teal)" : "var(--ink-muted)", opacity: selected ? 0.75 : 1 }}
+          style={{ color: selected ? "var(--gold)" : "var(--ink-muted)", opacity: selected ? 0.75 : 1 }}
         >
           {hint}
         </div>
@@ -523,7 +525,7 @@ export function Stepper({
         >
           −
         </motion.button>
-        <div className="min-w-[4.5rem] text-center font-mono-num text-[28px] font-semibold" style={{ color: "var(--ink)" }}>
+        <div className="min-w-[4.5rem] text-center font-mono-num text-[28px] font-light" style={{ color: "var(--ink)" }}>
           <motion.span
             key={value}
             initial={{ y: value > 0 ? 8 : -8, opacity: 0.4 }}
@@ -635,7 +637,7 @@ export function StepProgress({ steps, current }: { steps: readonly string[]; cur
                   exit={{ opacity: 0, scale: 0.5 }}
                   transition={{ duration: 0.15 }}
                 >
-                  {i < current ? "✓" : i + 1}
+                  {i < current ? <Check size={12} strokeWidth={2.5} aria-hidden="true" /> : i + 1}
                 </motion.span>
               </AnimatePresence>
             </motion.div>
@@ -716,7 +718,7 @@ export function ScoreGauge({
               />
             )}
             <span
-              className="relative z-10 block text-[12.5px] font-semibold"
+              className="relative z-10 block text-[12.5px] font-medium"
               style={{ color: selected ? "var(--on-teal)" : "var(--ink)" }}
             >
               {o.label}

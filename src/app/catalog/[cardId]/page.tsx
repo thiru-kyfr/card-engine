@@ -137,7 +137,7 @@ export default async function CardDetail({
                     <td className="border-b px-2 py-2" style={{ borderColor: "var(--line)" }}>
                       {catName(a.scope.value)}
                     </td>
-                    <td className="border-b px-2 py-2 font-mono-num font-semibold" style={{ borderColor: "var(--line)" }}>
+                    <td className="border-b px-2 py-2 font-mono-num font-normal" style={{ borderColor: "var(--line)" }}>
                       {a.multiplier}×
                     </td>
                     <td className="border-b px-2 py-2" style={{ borderColor: "var(--line)" }}>
@@ -194,7 +194,7 @@ export default async function CardDetail({
                       )}
                     </td>
                     <td
-                      className="border-b px-2 py-2 text-right font-mono-num font-semibold"
+                      className="border-b px-2 py-2 text-right font-mono-num font-normal"
                       style={{ borderColor: "var(--line)" }}
                     >
                       ₹{r.inr_per_point.toFixed(2)} / pt

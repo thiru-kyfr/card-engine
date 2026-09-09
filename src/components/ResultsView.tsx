@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
+import { Sparkle, Check } from "lucide-react";
 import type { CardResult, RecommendationResult } from "@/engine/types";
 import { formatInr, formatPoints } from "@/engine/format";
 import {
@@ -233,13 +234,16 @@ function FeaturedResult({
   return (
     <Card className="overflow-hidden p-0">
       <div
-        className="flex items-center justify-between px-6 py-2.5 font-mono-num text-[11px] font-bold uppercase tracking-[0.1em]"
+        className="flex items-center justify-between px-6 py-2.5 font-mono-num text-[11px] font-semibold uppercase tracking-[0.1em]"
         style={{
-          background: isBest ? "var(--lime)" : "var(--paper-sunken)",
-          color: isBest ? "var(--on-lime)" : "var(--ink-faint)",
+          background: isBest ? "var(--gold-soft)" : "var(--paper-sunken)",
+          color: isBest ? "var(--gold)" : "var(--ink-faint)",
         }}
       >
-        <span>{isBest ? "★ Best match" : `#${result.rank} match`}</span>
+        <span className="flex items-center gap-1.5">
+          {isBest && <Sparkle size={12} strokeWidth={2} fill="currentColor" aria-hidden="true" />}
+          {isBest ? "Best match" : `#${result.rank} match`}
+        </span>
         {result.tiebreak_applied && (
           <span style={{ opacity: 0.8 }}>close call</span>
         )}
@@ -270,7 +274,7 @@ function FeaturedResult({
               className="shrink-0 rounded-2xl px-5 py-3.5 text-center"
               style={{ background: "var(--paper-sunken)" }}
             >
-              <div className="font-mono-num text-[26px] font-bold leading-none" style={{ color: "var(--teal)" }}>
+              <div className="font-mono-num text-[26px] font-light leading-none" style={{ color: "var(--teal)" }}>
                 <AnimatedNumber value={v.nav_inr} format={formatInr} />
               </div>
               <div
@@ -291,7 +295,7 @@ function FeaturedResult({
         {result.explanation && result.explanation.length > 0 && (
           <div className="mt-5">
             <Callout tone="gold">
-              <p className="font-semibold" style={{ color: "var(--ink)" }}>
+              <p className="font-normal" style={{ color: "var(--ink)" }}>
                 {result.explanation[0]}
               </p>
               {chips.length > 0 && (
@@ -325,7 +329,7 @@ function FeaturedResult({
             <ul className="space-y-1.5">
               {result.explanation.slice(1).map((line, i) => (
                 <li key={i} className="flex gap-2 text-[13.5px]" style={{ color: "var(--ink-muted)" }}>
-                  <span style={{ color: "var(--teal)" }}>✓</span>
+                  <Check size={15} strokeWidth={2} style={{ color: "var(--teal)", flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
                   <span>{line}</span>
                 </li>
               ))}
@@ -363,7 +367,7 @@ function FeaturedResult({
 function StatCell({ label, value }: { label: string; value: string }) {
   return (
     <div className="px-2 py-4">
-      <div className="font-mono-num text-[15.5px] font-bold">{value}</div>
+      <div className="font-mono-num text-[15.5px] font-normal">{value}</div>
       <div
         className="mt-1 font-mono-num text-[9.5px] uppercase tracking-[0.05em]"
         style={{ color: "var(--ink-faint)" }}
@@ -391,7 +395,7 @@ function SecondaryRow({ result }: { result: CardResult }) {
             #{result.rank}
           </span>
           <div className="min-w-0">
-            <div className="truncate text-[14.5px] font-semibold">{result.card.name}</div>
+            <div className="truncate text-[14.5px] font-normal">{result.card.name}</div>
             <div className="text-[12px]" style={{ color: "var(--ink-muted)" }}>
               {result.card.issuer} · {result.card.tier.replace("_", " ")}
             </div>
@@ -399,7 +403,7 @@ function SecondaryRow({ result }: { result: CardResult }) {
         </div>
         <div className="flex items-center gap-3">
           <div className="text-right">
-            <div className="font-mono-num text-[15px] font-semibold">
+            <div className="font-mono-num text-[15px] font-light">
               <AnimatedNumber value={v.nav_inr} format={formatInr} />
             </div>
             <div className="font-mono-num text-[10px]" style={{ color: "var(--ink-faint)" }}>
@@ -496,16 +500,16 @@ function Breakdown({ result }: { result: CardResult }) {
                 >
                   {c.cap_hit ? formatInr(c.overflow_spend) : "—"}
                 </td>
-                <td className="border-b px-2 py-1.5 font-mono-num font-semibold" style={{ borderColor: "var(--line)" }}>
+                <td className="border-b px-2 py-1.5 font-mono-num font-normal" style={{ borderColor: "var(--line)" }}>
                   {formatPoints(c.monthly_points)}
                 </td>
               </tr>
             ))}
             <tr>
-              <td colSpan={5} className="px-2 py-1.5 text-right font-semibold">
+              <td colSpan={5} className="px-2 py-1.5 text-right font-normal">
                 Monthly points
               </td>
-              <td className="px-2 py-1.5 font-mono-num font-semibold">{formatPoints(v.monthly_points)}</td>
+              <td className="px-2 py-1.5 font-mono-num font-normal">{formatPoints(v.monthly_points)}</td>
             </tr>
           </tbody>
         </table>
@@ -570,7 +574,7 @@ function Line({ k, val, strong, neg }: { k: string; val: string; strong?: boolea
       <span
         className="font-mono-num"
         style={{
-          fontWeight: strong ? 600 : 400,
+          fontWeight: strong ? 500 : 400,
           color: neg ? "var(--rose)" : "var(--ink)",
         }}
       >

@@ -54,7 +54,7 @@ export default function CatalogPage() {
                 <div className="mb-1 flex flex-wrap items-center gap-1.5">
                   <Pill>{c.tier.replace("_", " ")}</Pill>
                 </div>
-                <h3 className="text-[15px] font-semibold" style={{ color: "var(--ink)" }}>
+                <h3 className="text-[15px] font-normal" style={{ color: "var(--ink)" }}>
                   {c.name}
                 </h3>
                 <p className="text-[12.5px]" style={{ color: "var(--ink-muted)" }}>

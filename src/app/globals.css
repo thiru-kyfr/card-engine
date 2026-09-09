@@ -2,61 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   KYFR Design System — deep-purple cosmos, violet + gold accents,
+   glass cards, Outfit Light type. Single dark theme (KYFR itself
+   ships no light variant — see the design system README).
+   ============================================================ */
 :root {
-  --paper: #f3f1ff;
-  --paper-raised: #ffffff;
-  --paper-sunken: #eae6fb;
-  --ink: #14121f;
-  --ink-muted: #5b5773;
-  --ink-faint: #8b87a3;
-  --line: rgba(20, 18, 31, 0.09);
-  --line-strong: rgba(20, 18, 31, 0.18);
-  --teal: #4137fa;
-  --teal-strong: #2f24fa;
-  --teal-soft: rgba(65, 55, 250, 0.12);
+  --paper: #0a0410;
+  --paper-raised: rgba(28, 18, 42, 0.62);
+  --paper-sunken: rgba(255, 255, 255, 0.05);
+  --ink: #f6f3fa;
+  --ink-muted: #bdb0cf;
+  --ink-faint: #7e7193;
+  --line: rgba(255, 255, 255, 0.09);
+  --line-strong: rgba(255, 255, 255, 0.18);
+  --teal: #8048f0;
+  --teal-strong: #6200d3;
+  --teal-soft: rgba(128, 72, 240, 0.16);
   --on-teal: #ffffff;
-  --gold: #e8a23d;
-  --gold-soft: rgba(232, 162, 61, 0.14);
-  --rose: #e1483a;
-  --rose-soft: rgba(225, 72, 58, 0.12);
-  --lime: #d6ff3f;
-  --lime-strong: #c3ee28;
-  --on-lime: #14121f;
-  --shadow-sm: 0 1px 2px rgba(20, 15, 60, 0.08), 0 1px 1px rgba(20, 15, 60, 0.05);
-  --shadow-md: 0 20px 40px rgba(20, 15, 60, 0.16), 0 4px 12px rgba(20, 15, 60, 0.08);
-  --radius: 28px;
+  --gold: #e6ae3a;
+  --gold-soft: rgba(230, 174, 58, 0.14);
+  --rose: #e26561;
+  --rose-soft: rgba(226, 101, 97, 0.14);
+  --violet-deepbg: #24004d;
+  --glass: rgba(28, 18, 42, 0.62);
+  --glass-nav: rgba(8, 0, 15, 0.55);
+  --blur: blur(24px);
+  --bg-glow: radial-gradient(135% 60% at 50% -10%, #2c0f4e 0%, #160a22 46%, #0a0410 100%);
+  --tile-violet: linear-gradient(160deg, #8048f0 0%, #3d1f80 100%);
+  --tile-pink: linear-gradient(160deg, #ff6ba1 0%, #a83e68 100%);
+  --tile-magenta: linear-gradient(160deg, #f97dd6 0%, #99408c 100%);
+  --tile-amber: linear-gradient(160deg, #ffc366 0%, #b87f2e 100%);
+  --shadow-sm: 0 4px 4px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 20px 44px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.3);
+  --radius: 48px;
   --radius-sm: 16px;
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  --font-serif: "Baloo 2", "Segoe UI Rounded", system-ui, sans-serif;
-  color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #0b0a14;
-    --paper-raised: #15131f;
-    --paper-sunken: #1c1a29;
-    --ink: #f1f0fa;
-    --ink-muted: #b4b0cc;
-    --ink-faint: #726e8c;
-    --line: rgba(255, 255, 255, 0.08);
-    --line-strong: rgba(255, 255, 255, 0.16);
-    --teal: #8a82ff;
-    --teal-strong: #aba5ff;
-    --teal-soft: rgba(138, 130, 255, 0.16);
-    --on-teal: #0b0a14;
-    --gold: #f0b25e;
-    --gold-soft: rgba(240, 178, 94, 0.16);
-    --rose: #ff8478;
-    --rose-soft: rgba(255, 132, 120, 0.16);
-    --lime: #d6ff3f;
-    --lime-strong: #e4ff70;
-    --on-lime: #14121f;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 1px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 20px 40px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.4);
-    color-scheme: dark;
-  }
+  --font-sans: "Outfit", system-ui, sans-serif;
+  --font-mono: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Outfit", system-ui, sans-serif;
+  color-scheme: dark;
 }
 
 html,
@@ -66,17 +50,20 @@ body {
 }
 
 body {
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--bg-glow);
+  color: var(--ink-muted);
   font-family: var(--font-sans);
+  font-weight: 300;
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4 {
   font-family: var(--font-serif);
-  font-weight: 700;
+  font-weight: 300;
   margin: 0;
+  letter-spacing: -0.02em;
   text-wrap: balance;
+  color: var(--ink);
 }
 
 ::selection {
@@ -96,6 +83,27 @@ h1, h2, h3, h4 {
 .bg-rose-soft { background: var(--rose-soft); }
 .border-teal { border-color: var(--teal); }
 .font-mono-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* Glass card — the KYFR signature surface: translucency + blur over the
+   dark cosmos, not a stroke. Applied via .surface's --paper-raised, but
+   the blur itself needs a dedicated class since backdrop-filter can't
+   live inside a CSS variable. */
+.glass {
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+}
+
+/* Icon chip — thin violet line icon in a filled rounded-square tile,
+   KYFR's one documented icon treatment (see README § Iconography). */
+.icon-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: var(--violet-deepbg);
+  color: var(--teal);
+}
 
 input[type="range"] {
   accent-color: var(--teal);
@@ -121,7 +129,6 @@ input[type="range"] {
   width: 14px;
   height: 26px;
   border-radius: 7px;
-  background: var(--surface, #fff);
   background: var(--paper-raised);
   border: 2.5px solid var(--teal);
   box-shadow: var(--shadow-sm);
@@ -196,17 +203,19 @@ button:not(:disabled):active { transform: translateY(1px); }
 
 a[href] { text-decoration-thickness: 1px; text-underline-offset: 2px; }
 
-/* Buttons — a bold, high-energy convention: the one action that matters is
-   a solid lime pill; everything else recedes to a quiet outline or ghost. */
+/* Buttons — pill-shaped throughout. The one action that matters is a
+   solid violet fill; everything else recedes to a quiet outline or ghost. */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  font-weight: 700;
-  font-size: 14.5px;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: -0.02em;
   border-radius: 999px;
-  padding: 0.85rem 1.6rem;
+  padding: 0.9rem 1.8rem;
   white-space: nowrap;
   border: 1px solid transparent;
 }
@@ -214,10 +223,10 @@ a[href] { text-decoration-thickness: 1px; text-underline-offset: 2px; }
 .btn-block { width: 100%; }
 
 .btn-primary {
-  background: var(--lime);
-  color: var(--on-lime);
+  background: var(--teal);
+  color: var(--on-teal);
 }
-.btn-primary:hover:not(:disabled) { background: var(--lime-strong); }
+.btn-primary:hover:not(:disabled) { background: var(--teal-strong); }
 .btn-primary:disabled { opacity: 0.35; }
 
 .btn-secondary {
@@ -225,7 +234,7 @@ a[href] { text-decoration-thickness: 1px; text-underline-offset: 2px; }
   color: var(--ink);
   border-color: var(--line-strong);
 }
-.btn-secondary:hover:not(:disabled) { border-color: var(--teal); color: var(--teal); }
+.btn-secondary:hover:not(:disabled) { border-color: var(--teal); color: var(--ink); }
 .btn-secondary:disabled { opacity: 0.35; }
 
 .btn-ghost {
@@ -235,8 +244,9 @@ a[href] { text-decoration-thickness: 1px; text-underline-offset: 2px; }
 }
 .btn-ghost:hover:not(:disabled) { color: var(--ink); }
 
-/* Chips — selectable pill. Selected state fills solid ink-on-paper, an
-   inversion that holds correctly in both light and dark. */
+/* Chips — selectable pill. Selected state glows gold, matching KYFR's own
+   "active nav tile" convention, so the same color always means "this is
+   the one that's on" everywhere in the product. */
 .chip {
   display: inline-flex;
   align-items: center;
@@ -246,22 +256,23 @@ a[href] { text-decoration-thickness: 1px; text-underline-offset: 2px; }
   color: var(--ink-muted);
   background: transparent;
   padding: 0.6rem 1.1rem;
-  font-size: 13.5px;
-  font-weight: 600;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 400;
 }
 @media (max-width: 639px) {
   .chip {
     padding: 0.45rem 0.85rem;
-    font-size: 12px;
+    font-size: 12.5px;
     gap: 0.3rem;
   }
 }
-.chip:hover:not(:disabled) { border-color: var(--teal); color: var(--teal); }
+.chip:hover:not(:disabled) { border-color: var(--teal); color: var(--ink); }
 .chip[aria-pressed="true"] {
-  background: var(--ink);
-  color: var(--paper);
-  border-color: var(--ink);
-  font-weight: 700;
+  background: var(--gold-soft);
+  color: var(--gold);
+  border-color: var(--gold);
+  font-weight: 500;
 }
 
 :focus-visible {
