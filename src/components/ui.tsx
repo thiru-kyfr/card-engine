@@ -683,8 +683,11 @@ export function StepProgress({ steps, current }: { steps: readonly string[]; cur
                 </motion.span>
               </AnimatePresence>
             </motion.div>
+            {/* Hidden on phones: at 10px these duplicate the step title
+                directly above them and only add noise. The filled dot still
+                carries position. */}
             <span
-              className="max-w-[5.5rem] text-center text-[10px] leading-tight"
+              className="hidden max-w-[5.5rem] text-center text-[10px] leading-tight sm:block"
               style={{ color: i <= current ? "var(--ink-muted)" : "var(--ink-faint)" }}
             >
               {s}

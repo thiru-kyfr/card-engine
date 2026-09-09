@@ -55,10 +55,16 @@ body {
   font-family: var(--font-sans);
   font-weight: 300;
   -webkit-font-smoothing: antialiased;
-  /* The app embeds this in an iframe; a stray sideways scroll there reads as
-     a broken page, so pin the horizontal axis rather than relying on every
-     child behaving. */
-  overflow-x: hidden;
+}
+
+/* The step transition slides content in from +24px, which briefly makes the
+   page horizontally scrollable and shows up on a phone as a sideways jiggle
+   on every step change. `clip` rather than `hidden`: hidden would make this
+   a scroll container and break the sticky action bar below. Set on the root
+   too, since that — not body — is the element that actually scrolls. */
+html,
+body {
+  overflow-x: clip;
 }
 
 /* ── Embedded in the KYFR app (?embed=1) ──────────────────────────────
@@ -108,6 +114,17 @@ h1, h2, h3, h4 {
 .glass {
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
+}
+
+/* The category strip already says "Swipe for more"; a raw scrollbar track
+   under it is the same message a second time, in the one visual language
+   this design system doesn't use. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* Icon chip — thin violet line icon in a filled rounded-square tile,

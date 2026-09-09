@@ -317,8 +317,11 @@ export function RecommendFlow({
   return (
     <div>
       <div className="mb-4">
+        {/* On a phone this said the same thing as the stepper dots and the
+            title below it — three ways of saying "step 2 of 3" in 90px of a
+            720px screen. Kept for screen readers, shown from sm up. */}
         <p
-          className="mb-1 flex items-center gap-2 font-mono-num text-[10.5px] uppercase tracking-[0.11em]"
+          className="sr-only mb-1 items-center gap-2 font-mono-num text-[10.5px] uppercase tracking-[0.11em] sm:not-sr-only sm:flex"
           style={{ color: "var(--teal)" }}
         >
           <span className="inline-block h-px w-4" style={{ background: "var(--teal)" }} />
@@ -351,7 +354,7 @@ export function RecommendFlow({
           transition={STEP_TRANSITION}
           className="space-y-4">
           <Card className="p-4 sm:p-6">
-            <SectionTitle description="This decides which cards you're even eligible to apply for — nothing more, nothing hidden.">
+            <SectionTitle description="Decides which cards you're eligible for — nothing more, nothing hidden.">
               A little about you
             </SectionTitle>
 
@@ -416,7 +419,7 @@ export function RecommendFlow({
           </Card>
 
           <Card className="p-4 sm:p-6">
-            <SectionTitle description="This never filters out a card — it only shows how likely you are to be approved for each match. Skip it if you don't know.">
+            <SectionTitle description="Never filters a card out — it only shows how likely you are to be approved. Skip it if you don't know.">
               Your credit score <span style={{ fontWeight: 400, color: "var(--ink-faint)" }}>(optional)</span>
             </SectionTitle>
             <ScoreGauge
@@ -446,14 +449,14 @@ export function RecommendFlow({
           className="space-y-4"
         >
           <Card className="p-4 sm:p-6">
-            <SectionTitle description="Tap the categories you spend the most on, then tell us roughly how much per month. These amounts are what drive the ranking — there is no separate weighting on top of them.">
+            <SectionTitle description="Tap where you spend most, then set rough monthly amounts. These amounts drive the ranking directly.">
               Your biggest spend categories
             </SectionTitle>
 
             <p className="mb-2 text-[11.5px] sm:hidden" style={{ color: "var(--ink-faint)" }}>
               Swipe for more →
             </p>
-            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
+            <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
               {categories.map((c) => {
                 const selected = slots.some((s) => s.category_id === c.category_id);
                 const Icon = CATEGORY_ICON[c.category_id] ?? CATEGORY_ICON_FALLBACK;
@@ -510,7 +513,7 @@ export function RecommendFlow({
           </Card>
 
           <Card className="p-4 sm:p-6">
-            <SectionTitle description="All your other card spend in a month. This is mandatory — fee waivers and spend milestones are calculated on your total, not just the named categories.">
+            <SectionTitle description="Everything else you put on a card monthly. Fee waivers and milestones count your total, not just named categories.">
               Everything else
             </SectionTitle>
             <AmountPicker
@@ -555,7 +558,7 @@ export function RecommendFlow({
           className="space-y-4"
         >
           <Card className="p-4 sm:p-6">
-            <SectionTitle description="This picks which redemption rate each card is valued at — the same pile of points can be worth three times as much through one exit as another.">
+            <SectionTitle description="Sets which redemption rate each card is valued at — the same points can be worth 3× more through one exit than another.">
               How do you want to be rewarded?
             </SectionTitle>
             <div className="grid grid-cols-3 gap-2">
@@ -573,7 +576,7 @@ export function RecommendFlow({
           </Card>
 
           <Card className="p-4 sm:p-6">
-            <SectionTitle description="A hard filter: any card whose sticker fee is above this is removed, even if the fee would be waived at your spend level.">
+            <SectionTitle description="A hard filter on the sticker fee. If your spend clears a card's waiver, we count that fee as ₹0 here.">
               What annual fee works for you?
             </SectionTitle>
             <AmountPicker
@@ -588,7 +591,7 @@ export function RecommendFlow({
           </Card>
 
           <Card className="p-4 sm:p-6">
-            <SectionTitle description="Used only to break ties between cards that are close on money. Never changes the value calculation itself.">
+            <SectionTitle description="Only breaks ties between cards that are close on money. Never changes the value itself.">
               Merchants you use often <span style={{ fontWeight: 400, color: "var(--ink-faint)" }}>(optional)</span>
             </SectionTitle>
             <div className="flex flex-wrap gap-2">
