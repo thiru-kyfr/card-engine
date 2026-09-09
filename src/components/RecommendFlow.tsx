@@ -131,11 +131,17 @@ const PRIMARY_CATEGORY_COUNT = 8;
 
 type SlotState = { category_id: string; monthly_inr: number };
 
-/** Tab-scoped only — never sent anywhere, cleared on "Start over" and when
- * the tab closes. Exists purely so following a link out to a card's full
- * terms and hitting the browser back button returns to these exact results
- * instead of a reset wizard. */
+/** Device-local only — never sent anywhere, cleared on "Start over".
+ *
+ * localStorage rather than sessionStorage specifically because of where this
+ * runs: embedded in the KYFR app, a phone user gets a call, the OS backgrounds
+ * the app and is free to reclaim the webview. sessionStorage dies with it,
+ * which on this step would silently discard ~50 answered inputs. The TTL below
+ * keeps the original "not kept forever" intent. */
 const STORAGE_KEY = "card-engine-recommend-state-v1";
+/** Long enough to survive an interruption and coming back later the same day,
+ * short enough that stale spending answers don't resurface weeks on. */
+const STORAGE_TTL_MS = 24 * 60 * 60 * 1000;
 
 type PersistedState = {
   step: number;
@@ -149,6 +155,7 @@ type PersistedState = {
   feeComfort: number;
   pickedMerchants: string[];
   result: RecommendationResult | null;
+  savedAt?: number;
 };
 
 export function RecommendFlow({
@@ -189,9 +196,15 @@ export function RecommendFlow({
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     try {
-      const raw = sessionStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const saved = JSON.parse(raw) as Partial<PersistedState>;
+        const expired =
+          typeof saved.savedAt === "number" && Date.now() - saved.savedAt > STORAGE_TTL_MS;
+        if (expired) {
+          localStorage.removeItem(STORAGE_KEY);
+          return; // the finally below still marks us hydrated
+        }
         if (typeof saved.step === "number") setStep(saved.step);
         if (typeof saved.age === "number") setAge(saved.age);
         if (saved.employment) setEmployment(saved.employment);
@@ -226,9 +239,10 @@ export function RecommendFlow({
       feeComfort,
       pickedMerchants,
       result,
+      savedAt: Date.now(),
     };
     try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
     } catch {
       // Storage full or unavailable (private browsing) — not worth failing over.
     }
@@ -319,7 +333,7 @@ export function RecommendFlow({
         creditScore={creditScore}
         onRestart={() => {
           try {
-            sessionStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(STORAGE_KEY);
           } catch {
             // ignore
           }

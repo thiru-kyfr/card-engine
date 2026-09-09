@@ -628,6 +628,12 @@ export function AmountPicker({
   presets: { label: string; value: number }[];
   helper?: ReactNode;
 }) {
+  // Desktop can afford all three inputs at once. On a phone they triple the
+  // control surface for a single number — with five categories that was 54
+  // controls on one step — so the slider and exact field wait behind a tap.
+  // The value itself is never hidden: it sits in the disclosure control.
+  const [showExact, setShowExact] = useState(false);
+
   return (
     <div>
       <div className="mb-3 flex flex-wrap gap-1.5 sm:gap-2">
@@ -637,16 +643,39 @@ export function AmountPicker({
           </Chip>
         ))}
       </div>
-      <RangeField
-        label={label}
-        value={value}
-        onChange={onChange}
-        min={min}
-        max={max}
-        step={step}
-        prefix={prefix}
-        helper={helper}
-      />
+
+      {!showExact && (
+        <button
+          type="button"
+          onClick={() => setShowExact(true)}
+          className="flex w-full items-center justify-between py-1 text-left sm:hidden"
+          style={{ background: "none", border: 0, padding: "0.25rem 0" }}
+        >
+          <span className="font-mono-num text-[10.5px] uppercase tracking-[0.06em]" style={{ color: "var(--ink-faint)" }}>
+            {label}
+          </span>
+          <span className="text-[12.5px]" style={{ color: "var(--teal)" }}>
+            <span className="font-mono-num font-medium" style={{ color: "var(--ink)" }}>
+              {prefix}
+              {value.toLocaleString("en-IN")}
+            </span>{" "}
+            · Adjust
+          </span>
+        </button>
+      )}
+
+      <div className={showExact ? "" : "hidden sm:block"}>
+        <RangeField
+          label={label}
+          value={value}
+          onChange={onChange}
+          min={min}
+          max={max}
+          step={step}
+          prefix={prefix}
+          helper={helper}
+        />
+      </div>
     </div>
   );
 }
