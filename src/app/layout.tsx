@@ -36,11 +36,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         {/* Runs before first paint so the embedded layout never flashes the
             standalone header. Kept as a raw attribute rather than React state
-            because it must be settled before hydration. */}
+            because it must be settled before hydration.
+
+            The flag is remembered in sessionStorage — scoped to this webview,
+            so it can't leak into an ordinary browser tab — because internal
+            links drop the query string. Without it, following "Full terms"
+            and then reloading brought our header back inside the host app.
+            ?embed=0 is the escape hatch. */}
         <script
           dangerouslySetInnerHTML={{
-            __html:
-              "try{if(new URLSearchParams(location.search).get('embed')==='1'){document.documentElement.setAttribute('data-embed','1')}}catch(e){}",
+            __html: [
+              "try{",
+              "var q=null;try{q=new URLSearchParams(location.search).get('embed')}catch(e){}",
+              "var on=q==='1';",
+              "try{",
+              "if(q==='1')sessionStorage.setItem('ce-embed','1');",
+              "else if(q==='0')sessionStorage.removeItem('ce-embed');",
+              "if(!on&&q!=='0')on=sessionStorage.getItem('ce-embed')==='1';",
+              "}catch(e){}",
+              "if(on)document.documentElement.setAttribute('data-embed','1');",
+              "}catch(e){}",
+            ].join(""),
           }}
         />
       </head>

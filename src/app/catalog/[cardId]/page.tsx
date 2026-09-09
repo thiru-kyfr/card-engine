@@ -99,7 +99,23 @@ export default async function CardDetail({
           <KV k="Terms effective from" v={card.meta.effective_date ?? "—"} />
           <KV k="Last checked" v={card.meta.last_verified ?? "—"} />
           {card.meta.terms_url && (
-            <KV k="Issuer terms" v={<span style={{ color: "var(--ink-faint)" }}>{card.meta.terms_url}</span>} />
+            <KV
+              k="Issuer terms"
+              v={
+                /* target=_blank matters here: embedded in the app this is the
+                   one link that should leave our widget, handing off to the
+                   system browser instead of navigating the iframe to a bank
+                   site the user then can't get back from. */
+                <a
+                  href={card.meta.terms_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "var(--teal)" }}
+                >
+                  Open on {card.issuer} ↗
+                </a>
+              }
+            />
           )}
         </Card>
       </div>
