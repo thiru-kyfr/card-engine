@@ -128,12 +128,15 @@ export function SectionTitle({
   description?: ReactNode;
 }) {
   return (
-    <div className="mb-5">
-      <h2 className="text-[18px] font-normal leading-snug" style={{ color: "var(--ink)" }}>
+    <div className="mb-4 sm:mb-5">
+      <h2 className="text-[17px] font-normal leading-snug sm:text-[18px]" style={{ color: "var(--ink)" }}>
         {children}
       </h2>
       {description && (
-        <p className="mt-1.5 text-[13.5px]" style={{ color: "var(--ink-muted)" }}>
+        <p
+          className="mt-1 text-[12.5px] leading-snug sm:mt-1.5 sm:text-[13.5px]"
+          style={{ color: "var(--ink-muted)" }}
+        >
           {description}
         </p>
       )}
@@ -501,23 +504,26 @@ export function IconTile({
       }}
       initial={false}
       transition={SOFT_SPRING}
-      className="glass rounded-2xl border-2 p-4 text-left"
+      className="glass rounded-2xl border-2 p-3 text-left sm:p-4"
     >
       <div
-        className="icon-chip mb-2 h-11 w-11"
+        className="icon-chip mb-1.5 h-9 w-9 sm:mb-2 sm:h-11 sm:w-11"
         style={{ background: selected ? "transparent" : "var(--violet-deepbg)", color: selected ? "var(--gold)" : "var(--teal)" }}
       >
         {icon}
       </div>
       <div
-        className="text-[14px] font-normal"
+        className="text-[12.5px] font-normal leading-tight sm:text-[14px]"
         style={{ color: selected ? "var(--gold)" : "var(--ink)" }}
       >
         {label}
       </div>
+      {/* The hint is genuine help on a wide tile, but at three-across on a
+          phone it turns the tile into a wall of 9pt text — the label alone
+          carries the choice there. */}
       {hint && (
         <div
-          className="mt-0.5 text-[12px]"
+          className="mt-0.5 hidden text-[12px] sm:block"
           style={{ color: selected ? "var(--gold)" : "var(--ink-muted)", opacity: selected ? 0.75 : 1 }}
         >
           {hint}

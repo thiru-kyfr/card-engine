@@ -1,6 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import "./globals.css";
+
+/** `viewportFit: "cover"` is what makes env(safe-area-inset-*) resolve to
+ * anything but 0 — without it the sticky action bar sits under the home
+ * indicator on notched phones. */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 const FAVICON =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='7' width='22' height='15' rx='3.5' fill='%238048F0'/%3E%3Crect x='7' y='11' width='22' height='15' rx='3.5' fill='%230A0410'/%3E%3C/svg%3E";
@@ -13,14 +22,26 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // suppressHydrationWarning: the embed script in <head> stamps data-embed
+  // onto <html> before hydration, which React would otherwise report as a
+  // mismatch it explicitly refuses to patch up.
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=Inter:wght@400;500;600&display=swap"
           rel="stylesheet"
+        />
+        {/* Runs before first paint so the embedded layout never flashes the
+            standalone header. Kept as a raw attribute rather than React state
+            because it must be settled before hydration. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{if(new URLSearchParams(location.search).get('embed')==='1'){document.documentElement.setAttribute('data-embed','1')}}catch(e){}",
+          }}
         />
       </head>
       <body>
@@ -49,8 +70,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </nav>
           </div>
         </header>
-        <main className="mx-auto max-w-6xl px-6 py-10">{children}</main>
-        <footer className="mx-auto max-w-6xl px-6 pb-12 pt-6">
+        <main className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-10">{children}</main>
+        <footer className="mx-auto max-w-6xl px-4 pb-10 pt-6 sm:px-6 sm:pb-12">
           <p className="text-[11.5px]" style={{ color: "var(--ink-faint)" }}>
             Card details may change without notice. Always confirm current rates, fees and
             benefits with the issuer before applying.

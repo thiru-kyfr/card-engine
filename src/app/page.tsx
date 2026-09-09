@@ -17,7 +17,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-[70vh] flex-col justify-center">
+    <div className="flex flex-col justify-center py-6 sm:min-h-[70dvh] sm:py-0">
       <div className="max-w-2xl">
         <p
           className="mb-4 flex items-center gap-2 font-mono-num text-[11.5px] uppercase tracking-[0.11em]"

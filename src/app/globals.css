@@ -55,6 +55,23 @@ body {
   font-family: var(--font-sans);
   font-weight: 300;
   -webkit-font-smoothing: antialiased;
+  /* The app embeds this in an iframe; a stray sideways scroll there reads as
+     a broken page, so pin the horizontal axis rather than relying on every
+     child behaving. */
+  overflow-x: hidden;
+}
+
+/* ── Embedded in the KYFR app (?embed=1) ──────────────────────────────
+   The host app already supplies a title bar, back affordance and the
+   outer scroll, so our own header/footer are duplicate chrome eating
+   the little vertical space a phone has. Set from an inline script
+   before paint, so there is no flash of the un-embedded layout. */
+[data-embed="1"] header,
+[data-embed="1"] footer {
+  display: none;
+}
+[data-embed="1"] main {
+  padding-top: 0.75rem;
 }
 
 h1, h2, h3, h4 {
@@ -166,6 +183,10 @@ input[type="range"] {
   color: var(--ink);
   padding: 0 0.1rem 0.1rem;
   -moz-appearance: textfield;
+  /* iOS Safari force-zooms the whole page when a focused input is under
+     16px, which inside an iframe leaves the app visibly scaled and stuck.
+     16px is the floor, not a style choice. */
+  font-size: 16px;
 }
 .numeric-input:focus {
   outline: none;
@@ -273,6 +294,55 @@ a[href] { text-decoration-thickness: 1px; text-underline-offset: 2px; }
   color: var(--gold);
   border-color: var(--gold);
   font-weight: 500;
+}
+
+/* ── Wizard action bar ────────────────────────────────────────────────
+   Sticks to the bottom of the viewport so the primary action is always
+   in thumb reach instead of parked at the end of a very long form.
+   `sticky` (not `fixed`) so it also behaves inside the app's iframe,
+   where a fixed element would anchor to the wrong scroll container. */
+.action-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  /* Right-aligned by default so a lone Continue sits where it's expected;
+     Back claims the left edge via auto margin when it's present. */
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin: 1.25rem -1rem 0;
+  padding: 0.75rem 1rem;
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  background: var(--glass-nav);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-top: 1px solid var(--line);
+}
+.action-bar .btn {
+  flex: 1;
+  /* 44px is the accessible minimum for a touch target; the ghost button's
+     text-sized padding lands under it on its own. */
+  min-height: 44px;
+}
+.action-bar .btn-ghost {
+  flex: 0 0 auto;
+  margin-right: auto;
+  padding-inline: 1rem;
+}
+@media (min-width: 640px) {
+  .action-bar {
+    position: static;
+    margin: 2rem 0 0;
+    padding: 0;
+    background: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-top: 0;
+  }
+  .action-bar .btn {
+    flex: 0 0 auto;
+  }
 }
 
 :focus-visible {

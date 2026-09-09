@@ -350,13 +350,13 @@ export function RecommendFlow({
           exit={{ opacity: 0, x: -24 }}
           transition={STEP_TRANSITION}
           className="space-y-4">
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <SectionTitle description="This decides which cards you're even eligible to apply for — nothing more, nothing hidden.">
               A little about you
             </SectionTitle>
 
             <FieldLabel>Employment</FieldLabel>
-            <div className="mt-2 grid gap-2 sm:grid-cols-3">
+            <div className="mt-2 grid grid-cols-3 gap-2">
               {EMPLOYMENTS.map((e) => (
                 <IconTile
                   key={e.id}
@@ -415,7 +415,7 @@ export function RecommendFlow({
             </div>
           </Card>
 
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <SectionTitle description="This never filters out a card — it only shows how likely you are to be approved for each match. Skip it if you don't know.">
               Your credit score <span style={{ fontWeight: 400, color: "var(--ink-faint)" }}>(optional)</span>
             </SectionTitle>
@@ -445,7 +445,7 @@ export function RecommendFlow({
           transition={STEP_TRANSITION}
           className="space-y-4"
         >
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <SectionTitle description="Tap the categories you spend the most on, then tell us roughly how much per month. These amounts are what drive the ranking — there is no separate weighting on top of them.">
               Your biggest spend categories
             </SectionTitle>
@@ -453,7 +453,7 @@ export function RecommendFlow({
             <p className="mb-2 text-[11.5px] sm:hidden" style={{ color: "var(--ink-faint)" }}>
               Swipe for more →
             </p>
-            <div className="-mx-6 flex gap-2 overflow-x-auto px-6 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
+            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
               {categories.map((c) => {
                 const selected = slots.some((s) => s.category_id === c.category_id);
                 const Icon = CATEGORY_ICON[c.category_id] ?? CATEGORY_ICON_FALLBACK;
@@ -509,7 +509,7 @@ export function RecommendFlow({
             )}
           </Card>
 
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <SectionTitle description="All your other card spend in a month. This is mandatory — fee waivers and spend milestones are calculated on your total, not just the named categories.">
               Everything else
             </SectionTitle>
@@ -554,11 +554,11 @@ export function RecommendFlow({
           transition={STEP_TRANSITION}
           className="space-y-4"
         >
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <SectionTitle description="This picks which redemption rate each card is valued at — the same pile of points can be worth three times as much through one exit as another.">
               How do you want to be rewarded?
             </SectionTitle>
-            <div className="grid gap-2 sm:grid-cols-3">
+            <div className="grid grid-cols-3 gap-2">
               {CHANNELS.map((c) => (
                 <IconTile
                   key={c.id}
@@ -572,7 +572,7 @@ export function RecommendFlow({
             </div>
           </Card>
 
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <SectionTitle description="A hard filter: any card whose sticker fee is above this is removed, even if the fee would be waived at your spend level.">
               What annual fee works for you?
             </SectionTitle>
@@ -587,7 +587,7 @@ export function RecommendFlow({
             />
           </Card>
 
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <SectionTitle description="Used only to break ties between cards that are close on money. Never changes the value calculation itself.">
               Merchants you use often <span style={{ fontWeight: 400, color: "var(--ink-faint)" }}>(optional)</span>
             </SectionTitle>
@@ -618,15 +618,15 @@ export function RecommendFlow({
       )}
       </AnimatePresence>
 
-      {/* nav */}
-      <div className="mt-8 flex items-center justify-between gap-4">
-        <Button
-          variant="ghost"
-          onClick={() => goToStep(Math.max(0, step - 1))}
-          disabled={step === 0}
-        >
-          Back
-        </Button>
+      {/* Primary action stays pinned to the bottom of the viewport on phones —
+          these steps are long, and burying Continue at the end of the scroll
+          is the main reason the flow felt broken on mobile. */}
+      <div className="action-bar">
+        {step > 0 && (
+          <Button variant="ghost" onClick={() => goToStep(Math.max(0, step - 1))}>
+            Back
+          </Button>
+        )}
 
         {step < 2 ? (
           <Button onClick={() => goToStep(step + 1)} arrow>
